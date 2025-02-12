@@ -1,0 +1,62 @@
+desc: Example `stormform` and `nodeeditor` Elements, using `updateopts` Action to make the `nodeeditor` dynamic.
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  elements:
+    nodecreator-nodeform-selector: { w: 4, h: 3, x: 0, y: 0 }
+    nodecreator-nodeeditor: { w: 8, h: 20, x: 0, y: 4 }
+
+elements:
+  nodecreator-nodeform-selector:
+    title: Choose a Node Form
+    type: stormform
+
+    opts:
+      fields:
+        - iden: fdc08e6760cc4c42924ef9523fc9f1d8
+          type: synforminput
+          label: node form
+          name: form
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+          opts:
+            placeholder: node form
+            showOptionsOnFocus: true
+
+  nodecreator-nodeeditor:
+    title: Add Node
+    type: nodeeditor
+
+    subs:
+      - src: nodecreator-nodeform-selector
+        events: [ onvars ]
+
+    events:
+      onvars:
+        - type: updateopts
+          opts:
+            operations:
+              - type: var
+                name: form
+                var: $form
+        - type: refresh
+
+    opts:
+      # `form` is set dynamically using the above `updateopts` Action.
+
+      # create the fields automatically based on the form.
+      autofields: true
+
+      # display the primary prop since we plan to create a new node.
+      displayprimary: true
+
+      submit:
+        # TODO: Add a better storm query
+        btntext: Add
+
+        query: |
+          // can create a node from the populated values in $fields
+          $lib.pprint($fields)

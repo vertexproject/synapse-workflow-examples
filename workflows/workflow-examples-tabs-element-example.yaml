@@ -1,0 +1,279 @@
+desc: Demonstrate the `tabs` Element with sub-layouts of different elements inside. These elements can still subscribe to and fire Events in the same namespace as the top level Elements.
+
+debug: true
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+  rows: 1fr 60px
+
+  areas: |
+    tabs
+    btns
+
+  elements:
+    tabs-elmnt: tabs
+    btns-elmnt: btns
+
+elements:
+  tabs-elmnt:
+    type: tabs
+
+    opts:
+      tabs:
+        - text: Foo
+          iden: foo-data
+
+          layout:
+            elements:
+              txtarea-foo-a: { x: 0, y: 0, w: 8, h: 6 }
+              txtarea-foo-b: { x: 8, y: 0, w: 4, h: 6 }
+              txtarea-foo-c: { x: 0, y: 6, w: 12, h: 8 }
+
+          buttons:
+            - text: Copy Foo
+              icon: DUPE_SM
+              disabled: $copydisabled
+              onclick:
+                - type: toast
+                  opts:
+                    title: success
+                    mesg: Foo thing
+            - text: Add Foo
+              icon: ADD_SM
+              onclick:
+                - type: toast
+                  opts:
+                    title: success
+                    mesg: hello foo button world
+
+          elements:
+            txtarea-foo-a:
+              title: Foo A
+              type: textarea
+              oninit:
+                - type: updatevars
+                  opts:
+                    operations:
+                      - { type: set, name: fooa, value: 'foo a' }
+              onload:
+                - type: refresh
+              opts:
+                invar: fooa
+                outvar: fooa
+                onchange:
+                  - type: eventfire
+                    opts:
+                      event: onvars
+
+            txtarea-foo-b:
+              title: Foo B
+              type: textarea
+              opts:
+                value: foo b
+
+            txtarea-foo-c:
+              title: Foo C
+              type: textarea
+              opts:
+                value: foo b
+
+        - text: Bar
+          iden: bar-data
+
+          layout:
+            elements:
+              txtarea-bar-a: { x: 0, y: 0, w: 6, h: 8 }
+              txtarea-bar-b: { x: 0, y: 8, w: 6, h: 6 }
+              txtarea-bar-c: { x: 6, y: 0, w: 6, h: 14 }
+
+          buttons:
+            - text: Add Bar
+              icon: ADD_SM
+              onclick:
+                - type: toast
+                  opts:
+                    title: success
+                    mesg: hello bar button world
+          elements:
+            txtarea-bar-a:
+              title: Bar A
+              type: textarea
+              opts:
+                value: bar a
+            txtarea-bar-b:
+              title: Bar B
+              type: textarea
+              hidden: $hide
+              oninit:
+                - type: updatevars
+                  opts:
+                    operations:
+                      - type: set
+                        name: hide
+                        value: false
+              opts:
+                value: bar b
+            txtarea-bar-c:
+              title: Bar C
+              type: textarea
+              opts:
+                value: bar c
+
+        - text: cssgrid layout
+          iden: cssgrid-layout
+
+          layout:
+            type: cssgrid
+            rows: minmax(64px, 1fr) minmax(256px, 2fr) minmax(128px, 3fr)
+            cols: minmax(512px, 2fr) minmax(256px, 512px)
+
+            areas: |
+              a s
+              b s
+              c s
+
+            elements:
+              txtarea-cg-a: a
+              txtarea-cg-b: b
+              txtarea-cg-c: c
+              txtarea-cg-d: s
+
+          elements:
+            txtarea-cg-a:
+              title: A
+              type: textarea
+              oninit:
+                - type: updatevars
+                  opts:
+                    operations:
+                      - { type: set, name: cga, value: 'cssgrid layout a' }
+              onload:
+                - type: refresh
+              opts:
+                invar: cga
+                outvar: cga
+                onchange:
+                  - type: eventfire
+                    opts:
+                      event: onvars
+
+            txtarea-cg-b:
+              title: B
+              type: textarea
+              opts:
+                value: cssgrid layout b
+
+            txtarea-cg-c:
+              title: C
+              type: textarea
+              opts:
+                value: cssgrid layout c
+
+            txtarea-cg-d:
+              title: D
+              type: textarea
+              opts:
+                value: cssgrid layout d
+
+  btns-elmnt:
+    type: buttons
+
+    subs:
+      - src: txtarea-foo-a
+        events: [ onvars ]
+
+    events:
+      onvars:
+        - type: updatevars
+          filters:
+            only:
+              var: fooa
+              neq: ''
+          opts:
+            operations:
+              - type: set
+                name: fooacleared
+                value: false
+
+        - type: updatevars
+          filters:
+            only:
+              var: fooa
+              eq: ''
+          opts:
+            operations:
+              - type: set
+                name: fooacleared
+                value: true
+
+    opts:
+      buttons:
+        - text: Select Foo
+          onclick:
+            - type: sendfocus
+              target: tabs-elmnt
+              opts:
+                tabiden: foo-data
+
+        - text: Select Bar
+          onclick:
+            - type: sendfocus
+              target: tabs-elmnt
+              opts:
+                tabiden: bar-data
+
+        - text: Clear Foo A
+          tooltip: 'Switch to the FOO Tab and clear the Foo A textarea. This button will be disabled until the Foo A textarea has text again'
+
+          disabled: $fooacleared
+          onclick:
+            - type: sendfocus
+              target: tabs-elmnt
+              opts:
+                tabiden: foo-data
+
+            - type: updatevars
+              target: txtarea-foo-a
+              opts:
+                operations:
+                  - type: set
+                    name: fooa
+                    value: ''
+
+            - type: refresh
+              target: txtarea-foo-a
+
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: fooacleared
+                    value: true
+
+        - text: Toggle Bar B hidden
+          onclick:
+            - type: sendfocus
+              target: tabs-elmnt
+              opts:
+                tabiden: bar-data
+            - type: updatevars
+              target: txtarea-bar-b
+              opts:
+                operations:
+                  - type: toggle
+                    name: hide
+
+        - text: Toggle Copy Foo button disabled
+          onclick:
+            - type: sendfocus
+              target: tabs-elmnt
+              opts:
+                tabiden: foo-data
+            - type: updatevars
+              target: tabs-elmnt
+              opts:
+                operations:
+                  - type: toggle
+                    name: copydisabled

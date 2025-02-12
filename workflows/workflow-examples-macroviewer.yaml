@@ -1,0 +1,62 @@
+desc: Select and view Macros using `stormform` and `textarea` Elements.
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+
+  rows: fit-content(144px) minmax(256px, max-content)
+
+elements:
+  macroviewer-selector:
+    type: stormform
+
+    style:
+      border: false
+
+    opts:
+      fields:
+        - iden: 6e17ea633a2f45de9ba5c9083c911091
+          type: dropdown
+          name: macroname
+          width:
+            min: 256px
+
+          label: Select a Macro
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+          opts:
+            placeholder: 'Select a macro'
+            values:
+              type: callstorm
+              opts:
+                query: |
+                  $items = ()
+
+                  for ($name, $mdata) in $lib.macro.list() {
+                    $items.append(({'text': $name, 'value': $name}))
+                  }
+
+                  return($items)
+
+  macroviewer-textarea:
+    type: textarea
+
+    subs:
+      - src: macroviewer-selector
+        events: [onvars]
+
+    events:
+      onvars:
+        - type: callstorm
+          opts:
+            query: |
+              return($lib.macro.get($macroname).storm)
+
+    opts:
+      readonly: true
+      syntax: storm
+      outvar: pendingstorm

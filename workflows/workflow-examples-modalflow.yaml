@@ -1,0 +1,81 @@
+desc: Example containing a `buttons` element that opens another (hidden) Workflow.
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: max-content
+  cols: max-content
+
+elements:
+  modalflow--btns:
+    type: buttons
+
+    style:
+      border: false
+
+    opts:
+      buttons:
+        - text: Open Workflow in a Modal
+          tooltip: Open the modalflow2 Workflow in a Modal.
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                - type: set
+                  name: hithere
+                  value: Hello thar!
+
+            - type: openmodal
+              opts:
+                # the iden of modalflow2
+                iden: workflow-examples-modalflow2
+
+                title: Do Foo Thing
+
+                # temporarily subscribe to `onvars` Events from the `textarea` element
+                # inside modalflow2.
+                subs:
+                  - src: modalflow2-textarea
+                    events: [ onvars ]
+
+                onclose:
+                  - type: toast
+                    opts:
+                      title: warning
+                      mesg: you closed it...
+                      timeout: 1500
+
+                events:
+                  onvars:
+                  # display a toast with the $heyback value we received from modalflow2
+                  - type: toast
+                    # only do the toast if $heyback isn't empty
+                    filters:
+                      only:
+                        var: $heyback
+                        neq: ''
+                    opts:
+                      title: success
+                      mesgvar: $heyback
+
+                  # close the modal only if $heyback == 'closeit'
+                  - type: closemodal
+                    filters:
+                      only:
+                        var: $heyback
+                        eq: closeit
+                    opts:
+                      iden: workflow-examples-modalflow2
+
+                  - type: toast
+                    filters:
+                      only:
+                        var: $heyback
+                        eq: closeit
+                    opts:
+                      title: warning
+                      mesg: I closed it for you...

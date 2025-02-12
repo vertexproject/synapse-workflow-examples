@@ -1,0 +1,95 @@
+---
+desc: Demonstrate the WorkflowElement `buttons` that can be used on any Element.
+
+debug: true
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+
+  rows: repeat(2, minmax(512px, 1fr))
+
+elements:
+  elmnt-btns-example--label:
+    type: label
+
+    oninit:
+      - type: updatevars
+        opts:
+          operations:
+            - type: set
+              name: yeet
+              value: false
+
+    buttons:
+      - text: Do Foo
+        tooltip: a tooltip for what the button will do
+        disabled: not $yeet
+        onclick:
+          - type: toast
+            opts:
+              title: success
+              mesg: yep foo
+      - text: Toggle Do Foo button
+        tooltip: toggle if the Do Foo button is disabled or not.
+        onclick:
+          - type: updatevars
+            opts:
+              operations:
+                - type: toggle
+                  name: yeet
+    menu:
+      items:
+        - text: A menu item
+          tooltip: buttons will always be to the left of this menu
+          onclick:
+            - type: storm
+              opts:
+                query: $lib.print('Hello Foo')
+
+                render: false
+
+                console:
+                  iden: foo-console
+
+    opts:
+      text: a label element with buttons up top
+
+  elmnt-btns-example--queryeditor:
+    type: queryeditor
+
+    buttons:
+      - text: Foo
+        tooltip: a tooltip for what the button will do
+        onclick:
+          - type: toast
+            opts:
+              title: success
+              mesg: yep foo
+
+    menu:
+      items:
+        - text: do it
+          onclick:
+            - type: openmodal
+              opts:
+                workflow:
+                  iden: qe-modal-thing
+                  name: qe-modal
+                  desc: inline qe modal workflow
+                  layout:
+                    type: cssgrid
+
+                  elements:
+                    qe-modal-tbl:
+                      type: datatable
+
+                      opts:
+                        columns:
+                          - iden: foo
+                            label: foo
+                            key: foo
+                          - iden: bar
+                            label: bar
+                            key: bar

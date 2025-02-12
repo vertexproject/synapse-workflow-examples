@@ -1,0 +1,130 @@
+desc: Example of using the queryeditor Element to populate a storm table
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  elements:
+    qb-storm--queryeditor: { x: 0, y: 0, w: 6, h: 5 }
+    qb-storm--table: { x: 0, y: 5, w: 8, h: 12 }
+
+elements:
+  qb-storm--queryeditor:
+    type: queryeditor
+
+    style:
+      border: false
+
+    onload:
+      - type: sendfocus
+
+    opts:
+      outvar: $query
+
+      placeholder: any inet:fqdn storm query
+
+      syntax: storm
+
+      menu:
+        items:
+          - text: bar mode
+            onclick:
+              - type: updatevars
+                opts:
+                  operations:
+                    - type: set
+                      name: foomode
+                      value: 'bar'
+          - text: baz mode
+            onclick:
+              - type: updatevars
+                opts:
+                  operations:
+                    - type: set
+                      name: foomode
+                      value: 'baz'
+
+          - text: disabled option
+            disabled: true
+
+          - text: Other option
+
+      onrun:
+        - type: storm
+          opts:
+            queryvar: $query
+
+            feed:
+              qb-storm--table: true
+
+        - type: toast
+          opts:
+            title: success
+            mesg: completed
+
+      onstop:
+        - type: toast
+          opts:
+            title: warn
+            mesg: screeeetch
+
+  qb-storm--table:
+    type: stormtable
+
+    opts:
+      form: 'inet:fqdn'
+
+      columns:
+        - type: form
+          opts:
+            title: 'inet:fqdn'
+        - type: prop
+          opts:
+            prop: issuffix
+        - type: prop
+          opts:
+            prop: iszone
+        - type: prop
+          opts:
+            prop: zone
+
+      menu:
+        items:
+          - text: 'Lift Nodes in research'
+            tooltip: 'Uses a getvars Action to generate a storm query that will lift the selected Nodes. The UI will then be navigated to the Research tool and the query will be executed.'
+            onclick:
+              - type: getvars
+                opts:
+                  query: |
+                    init {
+                      $queries = ([])
+                    }
+
+                    $queries.append(
+                      $lib.str.format('{form}={valu}', form=$node.form(), valu=$node.repr())
+                    )
+
+                    fini {
+                      return(({"liftquery": $lib.str.join(' ', $queries)}))
+                    }
+
+              - type: researchquery
+                opts:
+                  queryvar: $liftquery
+                  displaymode: table
+
+              # This action will never get executed.
+              # - type: toast
+              #   opts:
+              #     title: newp
+              #     mesg: will not be executed because we navigated to research.
+
+          - text: only zones
+            disabled: not $nodes.0.props.iszone
+
+      onselect:
+        - type: toast
+          opts:
+            title: success
+            mesg: selected

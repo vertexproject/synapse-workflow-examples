@@ -1,0 +1,249 @@
+desc: Example usage of hide and disable
+
+debug: true
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+
+  rows: repeat(3, max-content) 1fr
+  cols: 1fr 1fr
+
+  areas: |
+    tgl tgl
+    foo bar
+    baz bar
+    qbt bar
+
+  elements:
+    hide-disable--toggles: tgl
+    hide-disable--foo-btns: foo
+    hide-disable--bar-txt: bar
+    hide-disable--baz-form: baz
+    hide-disable--quux-btns: qbt
+
+# workflow oninit to grab vars for *all* elements to be initialized with.
+oninit:
+  - type: updatevars
+    opts:
+      operations:
+        - type: set
+          name: quuxhidden
+          value: true
+        - type: set
+          name: bazenabled
+          value: true
+
+elements:
+  hide-disable--toggles:
+    title: Toggles
+    type: stormform
+
+    opts:
+      layout:
+        orientation: horizontal
+
+      fields:
+        - iden: 732b80a8530f41a8bd9278056e9dd36b
+          type: toggle
+          name: foohidden
+          label: Hide Foo
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+          opts:
+            activeText: ''
+            inActiveText: ''
+
+        - iden: 249237ebdf5c4a259a3734865e6ebd5b
+          type: toggle
+          name: foodisabled
+          label: Disable Foo
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+          opts:
+            activeText: ''
+            inActiveText: ''
+
+        - iden: 8c12d488441743ecaaafbc0f0df76f7b
+          type: toggle
+          name: bardisablebazhide
+          label: Disable Bar / Hide Baz
+
+          onchange:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: var
+                    name: bardisabled
+                    var: $bardisablebazhide
+                  - type: var
+                    name: bazhidden
+                    var: $bardisablebazhide
+
+            - type: eventfire
+              opts:
+                event: onvars
+
+          opts:
+            activeText: ''
+            inActiveText: ''
+
+        - iden: b8b2f11f957348389f9c23dbe0e69365
+          type: toggle
+          name: bazenabled
+          label: Enable Baz
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+
+          opts:
+            activeText: ''
+            inActiveText: ''
+
+        - iden: 1414d9d2d406405c8d5455c0a2fdf026
+          type: toggle
+          name: isvip
+          label: VIP
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+
+          opts:
+            activeText: ''
+            inActiveText: ''
+
+        - iden: 9340301954a24d8885cd5a575f5998e3
+          type: toggle
+          name: quuxhidden
+          label: Hide Quux
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+          opts:
+            activeText: ''
+            inActiveText: ''
+
+  hide-disable--foo-btns:
+    title: Foo Element
+    type: buttons
+
+    disabled: $foodisabled
+    hidden: $foohidden
+
+    subs:
+      - src: hide-disable--toggles
+        events: [onvars]
+
+    opts:
+      justify: left
+
+      buttons:
+        - text: 'Foo Action'
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: gee
+                    value: whiz
+
+  hide-disable--bar-txt:
+    title: Bar Element
+    type: textarea
+
+    disabled: $bardisabled
+    hidden: $barhidden
+
+    subs:
+      - src: hide-disable--toggles
+        events: [onvars]
+
+    opts:
+      type: json
+      value: 'Some bar text'
+
+  hide-disable--baz-form:
+    title: Baz Element
+    type: stormform
+
+    disabled: not $bazenabled
+
+    hidden: $bazhidden
+
+    oninit:
+      - type: updatevars
+        opts:
+          operations:
+            - type: set
+              name: golly
+              value: hahaha
+
+
+    subs:
+      - src: hide-disable--toggles
+        events: [onvars]
+
+    events:
+      onvars:
+        - type: refresh
+
+    opts:
+      fields:
+        - iden: 6eb860ac9fdd4428be3c1b4250369a82
+          type: input
+
+          name: golly
+          label: Baz golly
+
+          opts:
+            placeholder: a baz value
+
+        - iden: 3c09fa9c7c424c34b404c9146957f3f5
+          type: input
+
+          name: npv
+          label: Not necessary for VIPs
+
+          hidden: $isvip
+
+          opts:
+            placeholder: normal person only value
+
+  hide-disable--quux-btns:
+    title: Quux Element
+    type: buttons
+
+    hidden: $quuxhidden
+
+    subs:
+      - src: hide-disable--toggles
+        events: [onvars]
+
+    opts:
+      buttons:
+        - text: 'Quux Action'
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: hehe
+                    value: haha

@@ -1,0 +1,48 @@
+desc: Example non-displayed Workflow that gets opened by Modal Flow.
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  elements:
+    modalflow2-textarea: { w: 12, h: 6, x: 0, y: 0 }
+    modalflow2-buttons: { w: 4, h: 3, x: 0, y: 7 }
+
+elements:
+  modalflow2-textarea:
+    title: Hello
+    type: textarea
+
+    subs:
+      - src: $workflow
+        events: [ onvars ]
+
+    events:
+      onvars:
+        - type: refresh
+
+    opts:
+      # the $hithere var we receive inbound.
+      invar: hithere
+
+      # the output var we will update and fire out in an `onvars` event.
+      outvar: heyback
+
+      placeholder: "type 'closeit' to cause the calling Workflow to close us"
+
+      onchange:
+        # fire an `onvars` Event when the textarea value is changed.
+        - type: eventfire
+          opts:
+            event: onvars
+
+  modalflow2-buttons:
+    title: Eject
+    type: buttons
+
+    opts:
+      buttons:
+        - text: 'Close'
+          onclick:
+            - type: closemodal

@@ -1,0 +1,52 @@
+desc: Demonstrate Workflow permissions configueration and display variations in a textarea.
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+# using defs to show syntax for the different types of permissions configurations.
+# this Workflow actually uses the `disable-perms`
+defs: &perms-examples
+  # if the user does not have this permission then the Workflow will be disabled.
+  disable-perms: &disable-perms
+    perms: [power-ups.workflow-examples.permissions-example]
+
+    # the default ondeny config if omitted uses `disable`.
+    ondeny:
+      type: disable
+
+  # if the user does not have one of the permission then the Workflow will be hidden.
+  hide-perms: &hide-perms
+    perms:
+      - power-ups.workflow-examples.permissions-example
+      - power-ups.workflow-examples.some-other-perm'
+
+    ondeny:
+      type: hide
+
+  mesg-perms: &mesg-perms
+    perms: [power-ups.workflow-examples.permissions-example]
+
+    ondeny:
+      type: mesg
+
+      # if `opts.mesg` is omitted the default toast message will show the user the necessary perms.
+      opts:
+        mesg: optional message to display to the user.
+
+permissions: *disable-perms
+# permissions: *hide-perms
+# permissions: *mesg-perms
+
+layout:
+  type: cssgrid
+
+elements:
+  perms-example-textarea:
+    title: Permissions configuration examples
+
+    type: textarea
+
+    opts:
+      type: json
+      value: *perms-examples

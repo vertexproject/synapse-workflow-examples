@@ -1,0 +1,147 @@
+desc: Example of a datatable Element that dynamically configures its columns and other opts.
+
+debug: true
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  elements:
+    datatable-dynamic--table: { w: 12, h: 5, x: 0, y: 0 }
+    datatable-dynamic--console: { w: 8, h: 20, x: 0, y: 5 }
+    datatable-dynamic--extra-textarea: { w: 4, h: 20, x: 8, y: 5 }
+
+elements:
+  datatable-dynamic--table:
+    type: datatable
+
+    onload:
+      - type: storm
+        opts:
+          console:
+            iden: datatable-dynamic--console
+
+          query: |
+            // build the columns dynamically
+            $columns = ([
+              {'iden': 'foo', 'key': 'foo', 'label': 'Foo', 'width': {'min': '50px', 'max': '1fr'}},
+              {'iden': 'bar', 'key': 'bar', 'label': 'Bar', 'width': '256px'},
+              {'iden': 'baz', 'key': 'baz', 'label': 'Baz', 'width': '2fr'},
+              {'iden': 'duration', 'key': 'dur', 'label': 'Duration', 'type': 'duration', 'width': '150px'}
+            ])
+
+            // build the row menu items
+            $onclick = ([{ 'type': 'toast', 'opts': { 'title': 'success', 'mesgvar': '$rows.0.foo' } }])
+            $menu = ({
+                'items': [
+                    { 'text': 'Foo', 'onclick': $onclick  },
+                    { 'text': 'Some', 'disabled': true },
+                    {
+                      'text': 'Submenu',
+                      'options': [
+                        {
+                          'text': 'Hehe',
+                          'hint': 'haha',
+                          'onclick': $onclick
+                        }
+                      ]
+                    }
+                ]
+            })
+
+            // assemble the datatable opts to fire
+            $opts = ({
+              'emptymesg': 'Couldnt find any f00s...',
+              'columns': $columns,
+              'menu': $menu
+            })
+
+            $lib.print('Configuring datatable opts')
+            $lib.pprint($opts)
+
+            $lib.fire('optic:datatable:init', opts=$opts)
+
+            // start firing rows
+            $lib.print('Firing 3 rows')
+
+            $row = ({'foo': 'woot', 'bar': 'hehe', 'baz': 'haha', 'dur': 128256, 'extra': 'extra stuff'})
+            $lib.fire('optic:datatable:row', row=$row)
+
+            $row = ({'foo': 'w00t', 'bar': 'a long value that will overflow the width of the cell and display a tooltip on hover', 'extra': 'it could be anything, even structured'})
+            $lib.fire('optic:datatable:row', row=$row)
+
+            $multiline = $lib.str.join("\n", (['whoa a multiline', 'string that contains at least one new line', 'and therefore overflows', 'the row height']))
+            $row = ({'foo': 'quux', 'bar': $multiline, 'baz': 'yayaya', 'dur': 432256512})
+            $lib.fire('optic:datatable:row', row=$row)
+
+            $row = ({'foo': 'quux', 'bar': 'haha', 'baz': 'yo yo yo yo yo'})
+            $lib.fire('optic:datatable:row', row=$row)
+
+            $lib.print('cya')
+
+    opts:
+      selectionstyle: bg
+
+      onselect:
+        - type: updatevars
+          opts:
+            operations:
+              - type: var
+                name: data
+                var: $rows.0
+
+        - type: eventfire
+          opts:
+            event: onvars
+            vars: [data]
+
+  datatable-dynamic--console:
+    title: output
+    type: stormconsole
+
+    opts:
+      autoscroll: false
+
+  datatable-dynamic--extra-textarea:
+    title: extra stuff
+    type: textarea
+
+    subs:
+      - src: datatable-dynamic--table
+        events: [onvars]
+
+    events:
+      onvars:
+        # clear previous $extra value
+        - type: updatevars
+          opts:
+            operations:
+              - type: del
+                name: extra
+
+        # grab the new $extra value if the data has one
+        - type: updatevars
+
+          filters:
+            only:
+              var: $data.extra
+              neq: null
+
+          opts:
+            operations:
+              - type: var
+                name: extra
+                var: $data.extra
+
+        # update the placeholder opt to indicate when the selected row has now extra data.
+        - type: updateopts
+          opts:
+            operations:
+              - type: set
+                name: placeholder
+                value: 'no extra data for this row'
+
+        - type: refresh
+
+    opts:
+      invar: $data.extra
+      placeholder: 'select a row'

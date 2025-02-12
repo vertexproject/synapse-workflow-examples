@@ -1,0 +1,243 @@
+# This Workflow provides a horizontal `stormform` Element as asearch / filter bar, a `stormtable` to display
+# the relevant Nodes, and a nodeviewer to display details of a Node selected in the table.
+desc: Search and filter proj:ticket Nodes and view details.
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: fit-content(144px) 1fr
+  cols: 3fr minmax(512px, 1fr)
+
+  areas: |
+    top top
+    tix det
+
+  elements:
+    proj-mgmt-topbar: top
+    proj-mgmt-tickets-table: tix
+    proj-mgmt-ticket-details: det
+
+elements:
+  # A form that configures an input for $search, and dropdowns for $project and $sprint variables.
+  proj-mgmt-topbar:
+    type: stormform
+
+    style:
+      border: false
+
+    oninit:
+      # initialize the $search, $project and $sprint vars so we can always reference them in our
+      # query without encountering NoSuchVar errors.
+      - type: updatevars
+        opts:
+          operations:
+            # null will be an empty input.
+            - { type: set, name: search, value: null }
+            # null will map to the 'All' filter option.
+            - { type: set, name: project, value: null }
+            - { type: set, name: sprint, value: null }
+
+    opts:
+      layout:
+        orientation: horizontal
+
+      fields:
+        # The search input
+        - iden: d63e9d37b2864bd6adf822cd66ef43d2
+          type: input
+
+          # the name of the var this field will be bound to.
+          name: search
+          label: Search
+
+          opts:
+            # defines the input placeholder text.
+            placeholder: Search tickets
+
+          # When the input is changed we'll fire our vars to subscribing Elements.
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+        # The project dropdown
+        - iden: 61ce716777ba7ac3f41ece51ab2e4244
+          name: project
+          label: Project
+
+          type: dropdown
+
+          opts:
+            # populate the dropdown using callStorm. The query must return a list of dicts.
+            values:
+              type: callstorm
+              opts:
+                query: |
+                  $items = ([{'text': 'All', 'value': null}])
+
+                  proj:project
+                  $items.append(({'text': :name, 'value': $node.value()}))
+
+                  fini {
+                    return($items)
+                  }
+
+          onchange:
+            # clear out $sprint when we change projects
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: sprint
+                    value: null
+
+            # refresh so the sprint dropdown shows only sprints in this project.
+            - type: refresh
+
+            # the fire the updated $project and $sprint vars to subscribing Elements.
+            - type: eventfire
+              opts:
+                event: onvars
+
+        # The sprint dropdown
+        - name: sprint
+          label: Sprint
+
+          type: dropdown
+
+          opts:
+            # Populate the sprint dropdown using callStorm. The query returns
+            # only sprints that are in the currently selected $project.
+            values:
+              type: callstorm
+              opts:
+                query: |
+                  $items = ([{'text': 'All', 'value': null}])
+
+                  if ($project = null) {
+                    proj:sprint
+                  } else {
+                    proj:sprint:project=$project
+                  }
+
+                  $items.append(({'text': :name, 'value': $node.value()}))
+
+                  fini {
+                    return($items)
+                  }
+
+          onchange:
+            # fire updated $sprint whenever this field changes
+            - type: eventfire
+              opts:
+                event: onvars
+
+
+  # The table that will display the matching proj:ticket Nodes.
+  proj-mgmt-tickets-table:
+    title: Project Tickets
+    type: stormtable
+
+    # load all proj:tickets on the initial load.
+    onload:
+      - type: storm
+        opts:
+          query: proj:ticket
+
+    subs:
+      # subscribe to `onvars` Events from the stormform.
+      - src: proj-mgmt-topbar
+        events: [ onvars ]
+
+    events:
+      # load proj:ticket nodes based on $project, $sprint and $search Vars we receive from the stormform.
+      onvars:
+        - type: storm
+          opts:
+            query: |
+              if ($project = null and $sprint = null) {
+                proj:ticket
+              } elif ($project != null) {
+                proj:ticket:project=$project
+              } elif ($sprint != null) {
+                proj:ticket:sprint=$sprint
+              } elif ($project != null and $sprint != null) {
+                proj:ticket:project=$project +:sprint=$sprint
+              }
+
+              if ($search != null) {
+                +(:name~=$search or :desc~=$search)
+              }
+
+    opts:
+      # The form of the Nodes we are displaying.
+      form: proj:ticket
+
+      # limit selection to a single Node.
+      disablemultiselect: true
+
+      # When a node is selected, we'll fire an `onnodes` Event with the selected Node in it.
+      onselect:
+        - type: nodesfire
+          opts:
+            # propagate the selected nodes from this onselect event.
+            propagate: true
+
+      # define the columns that we want to display.
+      columns:
+        - type: form
+          opts: {}
+
+        - type: prop
+          opts: { prop: name }
+        - type: prop
+          opts: { prop: priority }
+        - type: prop
+          opts: { prop: status }
+        - type: prop
+          opts: { prop: points }
+
+        - type: embed
+          opts:
+            embed: "sprint::name"
+            title: Sprint Name
+            linewrap: true
+
+        - type: embed
+          opts:
+            embed: "epic::name"
+            title: Epic Name
+
+  # A Node viewer that will display more details about the selected proj:ticket.
+  proj-mgmt-ticket-details:
+    title: Ticket Details
+    type: nodeviewer
+
+    subs:
+      # subscribe to `onnodes` Events from the stormtable.
+      - src: proj-mgmt-tickets-table
+        events: [ onnodes ]
+
+    events:
+      onnodes:
+        # load and render the inbound node in the viewer.
+        - type: loadnodes
+
+    opts:
+      # Define what we want to display about the Node.
+      items:
+        - { type: prop, name: 'name' }
+        - { type: prop, name: 'desc' }
+        - { type: prop, name: 'creator' }
+        - { type: prop, name: 'assignee' }
+        - { type: prop, name: 'status' }
+        - { type: prop, name: 'priority' }
+        - { type: prop, name: 'points' }
+        - { type: prop, name: 'created' }
+        - { type: prop, name: 'updated' }
+        - { type: embed, name: 'sprint::name', label: Sprint Name }
+        - { type: embed, name: 'epic::name', label: 'epic' }

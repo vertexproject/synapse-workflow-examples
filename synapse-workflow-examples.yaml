@@ -1,0 +1,91 @@
+name: synapse-workflow-examples
+version: 1.10.0
+synapse_version: '>=2.165.0,<3.0.0'
+desc: |
+  Synapse-Workflow-Examples provides examples and documentation to assist in building Optic Workflows.
+
+author:
+  url: https://vertex.link
+  name: The Vertex Project, LLC.
+
+genopts:
+  dotstorm: true
+
+docs:
+  - title: User Guide
+    path: docs/_build/userguide.md
+  - title: Admin Guide
+    path: docs/_build/adminguide.md
+  - title: Changelog
+    path: docs/_build/changelog.md
+
+optic:
+  displays:
+    - title: Project Management
+      workiden: workflow-examples-project-management
+
+    - title: Form + Table + Viewer
+      workiden: workflow-examples-form-table-viewer
+
+    - title: Datatable
+      workiden: workflow-examples-datatable
+
+    - title: Datatable - Multiselect
+      workiden: workflow-examples-datatable-multiselect
+
+    - title: Datatable - Dynamic
+      workiden: workflow-examples-datatable-dynamic
+
+    - title: Basic Storm Editor
+      workiden: workflow-examples-stormeditor
+
+    - title: Storm Editor (Delegated)
+      workiden: workflow-examples-stormeditor-delegated
+
+    - title: Node Creator
+      workiden: workflow-examples-nodecreator
+
+    - title: Macro Viewer
+      workiden: workflow-examples-macroviewer
+
+    - title: HTML Editor
+      workiden: workflow-examples-htmleditor
+
+    - title: Modal Flow
+      workiden: workflow-examples-modalflow
+
+    - title: Workflow Example Code
+      workiden: workflow-examples-workflowcode
+
+    - title: Hidden / Disabled
+      workiden: workflow-examples-hide-disable
+
+    - title: Form with Buttons
+      workiden: workflow-examples-form-buttons
+
+    - title: Querybar - Datatable
+      workiden: workflow-examples-querybar-datatable
+
+    - title: Queryeditor - Datatable
+      workiden: workflow-examples-queryeditor-datatable
+
+    - title: Queryeditor - Stormtable
+      workiden: workflow-examples-queryeditor-storm
+
+    - title: Workflow Permissions
+      workiden: workflow-examples-permissions-example
+
+    - title: Tabs Element Example
+      workiden: workflow-examples-tabs-element-example
+
+    - title: Tabbed Org Explorer
+      workiden: workflow-examples-tabbed-org-explorer
+
+    - title: Generic Element menu
+      workiden: workflow-examples-element-menu
+
+    - title: Generic Element buttons
+      workiden: workflow-examples-element-titlebar-buttons
+
+    - title: Generic Element query spinner
+      workiden: workflow-examples-element-spinner

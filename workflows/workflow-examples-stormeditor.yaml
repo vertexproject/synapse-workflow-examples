@@ -1,0 +1,51 @@
+desc: Basic `stormeditor` + `stormconsole`
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: default
+
+  elements:
+    stormeditor-input-editor: { w: 6, h: 12, x: 0, y: 0 }
+    stormeditor-run-btns: { w: 6, h: 2, x: 0, y: 12 }
+    stormeditor-output-console: { w: 6, h: 12, x: 0, y: 14 }
+
+elements:
+  stormeditor-input-editor:
+    title: storm query
+    type: stormeditor
+
+    opts:
+      storm: $lib.print(hello)
+
+      onrun:
+        - type: storm
+          opts:
+            console:
+              iden: stormeditor-output-console
+              clear: true
+
+  stormeditor-run-btns:
+    title: ''
+    type: buttons
+
+    opts:
+      buttons:
+        - text: Clear + Run <Shift+Enter>
+          onclick:
+            - type: storm
+              target: stormeditor-input-editor
+              opts:
+                console:
+                  iden: stormeditor-output-console
+                  clear: true
+        - text: Append
+          onclick:
+            - type: storm
+              target: stormeditor-input-editor
+              opts:
+                console:
+                  iden: stormeditor-output-console
+
+  stormeditor-output-console:
+    type: stormconsole

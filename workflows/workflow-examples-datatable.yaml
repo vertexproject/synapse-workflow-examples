@@ -1,0 +1,239 @@
+desc: Example of a datatable Element that displays pkgdefs.
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: repeat(2, minmax(512px, 1fr))
+
+elements:
+  datatable-pkg-table:
+    title: Loaded Packages
+
+    type: datatable
+
+    doc:
+      tooltip: A documentation tooltip
+
+    onload:
+      - type: storm
+        opts:
+          query: |
+            for $pkg in $lib.pkg.list() {
+              $row = ({'name': $pkg.name, 'version': $pkg.version, 'optic': ($pkg.optic != $lib.null)})
+
+              // check for for a module with modconf.source
+              for $mod in $pkg.modules {
+                $row.src = $mod.modconf.source
+
+                if ($row.src != $lib.null) {
+                  break
+                }
+              }
+
+              $lib.fire('optic:datatable:row', row=$row)
+            }
+
+    menu:
+      items:
+        - text: Foo
+          onclick:
+            - type: toast
+              opts:
+                title: success
+                mesg: Foo
+
+    opts:
+      selectionstyle: bg
+
+      emptymesg: No matching packages found
+
+      csvexport: true
+
+      onselect:
+        - type: delvars
+          opts:
+            vars: [lqok, liftquery, wqok, walkquery]
+
+        - type: updatevars
+          opts:
+            operations:
+              - type: var
+                name: pkgname
+                var: $rows.0.name
+
+        - type: eventfire
+          opts:
+            event: onvars
+      menu:
+        items:
+          - text: Lift meta:source in Research
+            hint: Error toast if no meta:source is available
+            onclick:
+              - type: getvars
+                opts:
+                  query: |
+                    // determine if the package has a module with a
+                    // modconf.source and if present, return a query to
+                    // lift the meta:source Node.
+
+                    $pkgname = $rows.0.name
+
+                    try {
+                      $src = $lib.null
+                      $pkg = $lib.pkg.get($pkgname)
+
+                      for $mod in $pkg.modules {
+                        $src = $mod.modconf.source
+
+                        if ($src != $lib.null) {
+                          break
+                        }
+                      }
+
+                      if ($src = $lib.null) {
+                        return(({"lqok": $lib.false, "liftquery": $lib.null}))
+                      }
+
+                      return(({
+                        "lqok": $lib.true,
+                        "liftquery": $lib.str.format("meta:source={valu}", valu=$src)
+                      }))
+                    } catch * as err {
+                      return(({"lqok": $lib.false, "liftquery": $lib.null}))
+                    }
+
+              - type: toast
+                filters:
+                  only:
+                    var: lqok
+                    eq: false
+                opts:
+                  title: error
+                  mesg: Package does not provide a modconf source.
+
+              - type: stop
+                filters:
+                  only:
+                    var: lqok
+                    eq: false
+
+              - type: researchquery
+                opts:
+                  queryvar: $liftquery
+
+          - text: meta:source --> * in Research
+            disabled: not $rows.0.src
+            onclick:
+              - type: getvars
+                opts:
+                  query: |
+                    // a single inbound row
+                    $pkgname = $rows.0.name
+                    try {
+                      $src = $lib.null
+                      $pkg = $lib.pkg.get($pkgname)
+
+                      for $mod in $pkg.modules {
+                        $src = $mod.modconf.source
+
+                        if ($src != $lib.null) {
+                          break
+                        }
+                      }
+
+                      if ($src = $lib.null) {
+                        return(({"wqok": $lib.false, "walkquery": $lib.null}))
+                      }
+
+                      return(({"wqok": $lib.true, "walkquery": $lib.str.format('meta:source={valu} --> *', valu=$src)}))
+                    } catch * as err {
+                      return(({"wqok": $lib.false, "walkquery": $lib.null}))
+                    }
+
+              - type: toast
+                filters:
+                  only:
+                    var: wqok
+                    eq: false
+                opts:
+                  title: error
+                  mesg: Package does not provide a modconf source.
+
+              - type: stop
+                filters:
+                  only:
+                    var: wqok
+                    eq: false
+
+              - type: researchquery
+                opts:
+                  queryvar: $walkquery
+
+          - text: A disabled menu option
+            onclick: []
+            disabled: true
+
+      columns:
+        - iden: pkgname
+          key: name
+          label: Name
+
+        - iden: pkgversion
+          key: version
+          label: Version
+          width: 100px
+          disableresize: true
+
+        - iden: optic
+          key: optic
+          label: Optic
+
+  datatable-pkg-contents:
+    title: Package Contents
+
+    type: textarea
+
+    subs:
+      - src: datatable-pkg-table
+        events: [ onvars ]
+
+    events:
+      onvars:
+        - type: updatevars
+          opts:
+            operations:
+              - type: callstorm
+                name: pkgdef
+                query: |
+                  return($lib.pkg.get($pkgname))
+        - type: refresh
+
+    menu:
+      items:
+        - text: Foo
+          onclick:
+            - type: toast
+              opts:
+                title: success
+                mesg: Foo
+
+    opts:
+      placeholder: Select a package to view its pkgdef.
+
+      invar: $pkgdef
+
+      # disallow editing
+      readonly: true
+
+      # displaying JSON
+      type: json
+
+      # this is the default when type is `json`.
+      # syntax: json
+
+      # let lines wrap rather than scroll horizontally.
+      linewrapping: true

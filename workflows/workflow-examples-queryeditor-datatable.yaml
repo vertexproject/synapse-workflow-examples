@@ -1,0 +1,107 @@
+desc: Example of using the queryeditor Element
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: minmax(192px, 384px) minmax(256px, 1fr)
+
+elements:
+  queryeditor--queryeditor:
+    type: queryeditor
+
+    doc:
+      tooltip: A documentation tooltip
+
+    menu:
+      items:
+        - text: foo
+          onclick:
+            - type: toast
+              opts:
+                title: success
+                mesg: Foo
+
+    style:
+      border: false
+
+    onload:
+      - type: sendfocus
+
+    opts:
+      outvar: $query
+
+      placeholder: some placeholder text
+
+      syntax: sql
+
+      menu:
+        items:
+          - text: bar mode
+            onclick:
+              - type: updatevars
+                opts:
+                  operations:
+                    - type: set
+                      name: foomode
+                      value: 'bar'
+          - text: baz mode
+            onclick:
+              - type: updatevars
+                opts:
+                  operations:
+                    - type: set
+                      name: foomode
+                      value: 'baz'
+
+          - text: disabled option
+            disabled: true
+
+          - text: Other option
+
+      onrun:
+        - type: storm
+          opts:
+            feed:
+              queryeditor--datatable: ['storm:fire']
+
+            query: |
+              for $i in $lib.range(10) {
+                $lib.fire('optic:datatable:row', row=({'foo': $i, 'bar': ($i * 2), 'baz': 42}))
+
+                $lib.time.sleep(1)
+              }
+            console:
+              global: true
+              mesgs: ['print', 'err', 'warn']
+
+        - type: toast
+          opts:
+            title: success
+            mesg: completed
+
+      onstop:
+        - type: toast
+          opts:
+            title: warn
+            mesg: screeeetch
+
+  queryeditor--datatable:
+    type: datatable
+
+    opts:
+      columns:
+        - iden: foo
+          key: foo
+          label: foo
+        - iden: bar
+          key: bar
+          label: bar
+        - iden: baz
+          key: baz
+          label: baz
+
+      emptymesg: Nothing found

@@ -1,0 +1,81 @@
+desc: Example of using the querybar Element to feed a datatable with rows from storm:fire messages.
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: default
+
+  elements:
+    querybar-datatable--querybar: { x: 0, y: 0, w: 8, h: 3 }
+    querybar-datatable--datatable: { x: 0, y: 3, w: 8, h: 12 }
+
+elements:
+  querybar-datatable--querybar:
+    type: querybar
+
+    style:
+      border: false
+
+    opts:
+      outvar: $query
+
+      placeholder: some placeholder text
+
+      menu:
+        items:
+          - text: Hello world
+            onclick:
+              - type: updatevars
+                opts:
+                  operations:
+                    - type: set
+                      name: whoa
+                      value: haha
+          - text: Not allowed right now
+            disabled: true
+
+      onrun:
+        - type: storm
+          opts:
+            feed:
+              querybar-datatable--datatable: ['storm:fire']
+
+            query: |
+              for $i in $lib.range(10) {
+                $lib.fire('optic:datatable:row', row=({'foo': $i, 'bar': ($i * 2), 'baz': 42}))
+
+                $lib.time.sleep(1)
+              }
+            console:
+              global: true
+              mesgs: ['print', 'err', 'warn']
+
+        - type: toast
+          opts:
+            title: success
+            mesg: completed
+
+      onstop:
+        - type: toast
+          opts:
+            title: warn
+            mesg: screeeetch
+
+  querybar-datatable--datatable:
+    type: datatable
+
+    opts:
+      columns:
+        - iden: foo
+          key: foo
+          label: foo
+        - iden: bar
+          key: bar
+          label: bar
+        - iden: baz
+          key: baz
+          label: baz
+
+      emptymesg: Nothing found

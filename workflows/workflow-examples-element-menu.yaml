@@ -1,0 +1,98 @@
+---
+desc: Demonstrate the WorkflowElement `menu` that can be used on any Element.
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: repeat(2, minmax(512px, 1fr))
+
+elements:
+  tabs-elmnt:
+    type: tabs
+
+    menu:
+      items:
+        - text: Hello Local
+          tooltip: Say Hello locally in storm and output to the stormconsole in the Foo tab.
+          onclick:
+            - type: storm
+              opts:
+                query: $lib.print('Hello Foo')
+
+                render: false
+
+                console:
+                  iden: foo-console
+
+        - text: Hello World
+          tooltip: Say Hello World in storm and output to the global console.
+          onclick:
+            - type: storm
+              opts:
+                query: $lib.print('Hello World')
+                render: false
+                console:
+                  global: true
+
+        - text: Newp
+          disabled: true
+
+        - text: <sep>category
+
+        - text: Submenu
+          tooltip: Do more stuff
+          options:
+            - text: hehe
+              onclick:
+                - type: storm
+                  opts:
+                    query: $lib.print('Hello World')
+                    render: false
+                    console:
+                      global: true
+
+    opts:
+      tabs:
+        - text: Foo
+          iden: foo-tab
+          layout:
+            type: cssgrid
+          elements:
+            foo-console:
+              type: stormconsole
+              style:
+                border: false
+
+  queryeditor-elmnt:
+    type: queryeditor
+
+    opts:
+      # defining menu items this way is now deprecated.
+      # Migrate to defining menu items at the element level.
+      menu:
+        items:
+          - text: do it
+            onclick:
+              - type: openmodal
+                opts:
+                  workflow:
+                    iden: qe-modal-thing
+                    name: qe-modal
+                    desc: inline qe modal workflow
+                    layout:
+                      type: cssgrid
+
+                    elements:
+                      qe-modal-tbl:
+                        type: datatable
+
+                        opts:
+                          columns:
+                            - iden: foo
+                              label: foo
+                              key: foo
+                            - iden: bar
+                              label: bar
+                              key: bar

@@ -1,0 +1,256 @@
+desc: Builds from the Form + Table + Viewer example by using the `tabs` Element to improve data density.
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+
+  rows: fit-content(144px) 1fr
+  cols: 512px 256px 1fr
+
+  areas: |
+    top top ...
+    org info info
+
+  elements:
+    org-expl--searchbar: top
+    org-expl--org-table: org
+    org-expl--tabs: info
+
+elements:
+  # A Form with a single text <input>. Any time the <input> changes this Element will
+  # fire an `onvars` Event that will contain the current value of the <input> as the `$orgsearch` variable.
+
+  org-expl--searchbar:
+    title: Org Name Search
+    type: stormform
+
+    style:
+      border: false
+
+    onload:
+      - type: sendfocus
+        opts:
+          field: org-search-field
+
+    opts:
+      fields:
+        - iden: org-search-field
+          type: input
+          name: orgsearch
+
+          label: ou:org search
+
+          onchange:
+            - type: eventfire
+              opts:
+                event: onvars
+
+          opts:
+            placeholder: ou:org name prefix
+
+  # A Table that will query for *ou:org* Nodes with $orgsearch in their name.
+  # The nodes will be rendered in the table with 2 columns, and fire an `onnodes` Event
+  # whenever an ou:org is selected.
+  org-expl--org-table:
+    title: ou:orgs
+    type: stormtable
+
+    # `subs` defines a list of subscriptions to receive `events` from `src`.
+    subs:
+      - src: org-expl--searchbar
+        events: [ onvars ]
+
+    # `events` defines a list of Actions to take onreceiving a particular type of event.
+    events:
+      onvars:
+        - type: storm
+          opts:
+            query: ou:org:name^=$orgsearch
+
+    opts:
+      form: ou:org
+
+      disablemultiselect: true
+
+      # the Actions to execute when a node is selected in the table.
+      onselect:
+        - type: nodesfire
+          opts:
+              propagate: true
+
+      columns:
+        - type: prop
+          opts:
+            prop: name
+            width: 70%
+            linewrap: true
+
+        - type: prop
+          opts: { prop: alias, width: 30% }
+
+  org-expl--tabs:
+    title: Org Info
+    type: tabs
+
+    opts:
+      tabs:
+        - iden: contacts
+
+          layout:
+            type: cssgrid
+
+          elements:
+            org-expl--contact-table:
+              type: stormtable
+
+              style:
+                border: false
+
+              subs:
+                - src: org-expl--org-table
+                  events: [ onnodes ]
+
+              events:
+                onnodes:
+                  - type: storm
+                    opts:
+                      query: -> ps:contact
+
+              opts:
+                form: ps:contact
+
+                columns:
+                  - type: prop
+                    opts: { prop: name, width: 200px }
+                  - type: prop
+                    opts: { prop: email, width: 250px }
+                  - type: prop
+                    opts: { prop: title }
+                  - type: prop
+                    opts: { prop: loc }
+
+        - iden: hosts
+
+          layout:
+            type: cssgrid
+
+            rows: repeat(2, 1fr)
+
+          elements:
+            # A Table that will pivot from an inbound *ou:org* Node to the
+            # related *it:host* Nodes and render them.
+            org-expl--hosts-table:
+              type: stormtable
+
+              style:
+                border: false
+
+              subs:
+                - src: org-expl--org-table
+                  events: [ onnodes ]
+
+              events:
+                onnodes:
+                  - type: storm
+                    opts:
+                      query: -> it:host
+
+              opts:
+                form: it:host
+
+                onselect:
+                  - type: nodesfire
+                    opts:
+                      propagate: true
+
+                columns:
+                  - type: prop
+                    opts: { prop: name, title: Name, width: 20% }
+                  - type: prop
+                    opts: { prop: desc, width: 15% }
+                  - type: prop
+                    opts: { prop: manu, width: 10% }
+                  - type: prop
+                    opts: { prop: model, width: 30% }
+                  - type: embed
+                    opts: { embed: 'os::software::name', width: 25% }
+
+            org-expl--hosts-tabs:
+              type: tabs
+
+              opts:
+                tabs:
+                  - text: HOST CONTACTS
+
+                    iden: host-contacts
+
+                    layout:
+                      type: cssgrid
+
+                    elements:
+                      org-expl--hosts-contacts-table:
+                        type: stormtable
+
+                        style:
+                          border: false
+
+                        subs:
+                            - src: org-expl--hosts-table
+                              events: [ onnodes ]
+
+                        events:
+                            onnodes:
+                                - type: storm
+                                  opts:
+                                    query: -> ps:contact
+
+                        opts:
+                            form: ps:contact
+
+                            columns:
+                                - type: prop
+                                  opts: { prop: name, width: 200px }
+                                - type: prop
+                                  opts: { prop: email, width: 250px }
+                                - type: prop
+                                  opts: { prop: title, width: 285px }
+                                - type: prop
+                                  opts: { prop: loc, width: 180px }
+                  - text: HOST SOFTWARE
+
+                    iden: host-software
+
+                    layout:
+                      type: cssgrid
+
+                    elements:
+                      # A Table that will pivot from an inbound *ou:org* Node to the
+                      # related *it:host* Nodes and render them.
+                      org-expl--hosts-software-table:
+                        type: stormtable
+
+                        style:
+                          border: false
+
+                        subs:
+                          - src: org-expl--hosts-table
+                            events: [ onnodes ]
+
+                        events:
+                          onnodes:
+                            - type: storm
+                              opts:
+                                query: -> it:prod:softver
+
+                        opts:
+                          form: it:prod:softver
+
+                          columns:
+                            - {type: prop, opts: {prop: 'software:name'}}
+                            - {type: prop, opts: {prop: 'vers', width: 150px}}
+                            - {type: prop, opts: {prop: 'arch', width: 150px}}
+                            - {type: prop, opts: {prop: 'url'}}
+                            - {type: prop, opts: {prop: 'cves'}}
+                            - {type: embed, opts: {embed: 'software::desc'}}
+                            - {type: embed, opts: {embed: 'software::isos', width: 150px}}

@@ -1,0 +1,27 @@
+desc: Example of a textarea Element with `syntax` set to `html`
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+
+elements:
+  htmleditor-textarea:
+    title: HTML editor
+
+    type: textarea
+
+    opts:
+      syntax: html
+
+      # a static value
+      value: |
+        <html>
+          <head></head>
+          <body>
+            <h1>Hello World<h1>
+          </body>
+        </html>
+
+      # invar: $foo
+      # outvar: bar

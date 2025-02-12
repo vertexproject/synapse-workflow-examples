@@ -1,0 +1,59 @@
+desc: Example storm editor where the query is executed only via a targeted action on a `stormconsole` Element.
+
+debug: true
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  elements:
+    stormeditor-delegated-editor: { w: 6, h: 12, x: 0, y: 0 }
+    stormeditor-delegated-run-btns: { w: 6, h: 2, x: 0, y: 12 }
+    stormeditor-delegated-output-console: { w: 6, h: 12, x: 0, y: 14 }
+
+elements:
+  stormeditor-delegated-editor:
+    title: storm query
+    type: stormeditor
+
+    onload:
+      - type: updatevars
+        opts:
+          operations:
+            - type: set
+              name: query
+              value: $lib.print(hello)
+      - type: eventfire
+        opts:
+          event: onvars
+
+      - type: refresh
+
+    opts:
+      invar: $query
+      outvar: $query
+
+      onchange:
+        - type: eventfire
+          opts:
+            event: onvars
+
+  stormeditor-delegated-run-btns:
+    title: ''
+    type: buttons
+
+    opts:
+      buttons:
+        - text: Delegate Run
+          onclick:
+            - type: storm
+              target: stormeditor-delegated-output-console
+              opts:
+                queryvar: $query
+
+  stormeditor-delegated-output-console:
+    title: output
+    type: stormconsole
+
+    subs:
+      - src: stormeditor-delegated-editor
+        events: [onvars]

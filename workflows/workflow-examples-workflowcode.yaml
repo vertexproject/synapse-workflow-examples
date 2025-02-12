@@ -1,0 +1,104 @@
+desc: View the code associated wtih the workflow examples.
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: default
+
+  elements:
+    wfcode-workflows-table: { w: 12, h: 9, x: 0, y: 0 }
+    wfcode-workflow-textarea: { w: 12, h: 16, y: 9, x: 0 }
+
+elements:
+  wfcode-workflows-table:
+    title: Example Workflows
+    type: datatable
+
+    onload:
+      - type: storm
+        opts:
+          query: |
+            $pkg = $lib.pkg.get(synapse-workflow-examples)
+            $titles = ({})
+            $displays = $lib.set()
+            for $item in $pkg.optic.displays {
+              $iden = $item.workiden
+              $displays.add($iden)
+              $titles.$iden = $item.title
+            }
+
+            for ($iden, $wflow) in $pkg.optic.workflows {
+              $isdisp = $displays.has($iden)
+
+              $name = $titles.$iden
+              if ($name = $lib.null) { $name = $iden }
+
+              $row = ({'iden': $iden, 'name': $name, 'display': $isdisp, 'desc': $wflow.desc})
+              $lib.fire("optic:datatable:row", row=$row)
+            }
+
+    opts:
+      selectionstyle: bg
+
+      onselect:
+        - type: updatevars
+          opts:
+            operations:
+              - type: var
+                name: widen
+                var: $rows.0.iden
+        - type: eventfire
+          opts:
+            event: onvars
+
+      columns:
+        - iden: wname
+          key: name
+          label: Name
+          width: 25%
+
+        - iden: wdisplay
+          key: display
+          label: Displayed?
+          width: 10%
+
+        - iden: wdesc
+          key: desc
+          label: Description
+          width: 65%
+
+  wfcode-workflow-textarea:
+    title: Workflow Code
+    type: textarea
+
+    subs:
+      - src: wfcode-workflows-table
+        events: [onvars]
+
+    events:
+      onvars:
+        - type: updatevars
+          opts:
+            operations:
+              - type: callstorm
+                name: wdef
+                query: |
+                  $pkg = $lib.pkg.get(synapse-workflow-examples)
+                  $out = ({})
+                  $out.$widen = $pkg.optic.workflows.$widen
+                  return($lib.yaml.save($out, sort_keys=$lib.false))
+        - type: refresh
+
+    opts:
+      invar: $wdef
+
+      # disallow editing
+      readonly: true
+
+      type: str
+
+      syntax: yaml
+
+      # let lines wrap rather than scroll horizontally.
+      linewrapping: true
+      placeholder: Select a workflow to view its code.

@@ -1,0 +1,131 @@
+desc: Example of a datatable Element supports multiselection and running a storm query using the selected rows
+
+optic_minversion: [2, 83, 0]
+
+layout:
+  type: cssgrid
+
+  rows: minmax(512px, 1fr) minmax(256px, max-content)
+
+elements:
+  datatable-multi--tbl:
+    type: datatable
+
+    menu:
+      items:
+        - text: Select All
+          onclick:
+            - type: selectdata
+              opts:
+                idensvar: $allrowidens
+
+    onload:
+      - type: storm
+        opts:
+          query: |
+            for $pkg in $lib.pkg.list() {
+              $row = ({'name': $pkg.name, 'iden': $pkg.name, 'version': $pkg.version, 'optic': ($pkg.optic != $lib.null)})
+
+              $lib.fire('optic:datatable:row', row=$row)
+            }
+      - type: updatevars
+        opts:
+          operations:
+            - type: callstorm
+              name: $allrowidens
+              query: |
+                $allpkgidens = ([])
+                for $pkg in $lib.pkg.list() {
+                  $allpkgidens.append($pkg.name)
+                }
+
+                return($allpkgidens)
+
+    opts:
+      selectionstyle: bg
+      emptymesg: No matching packages found
+
+      multiselect: true
+
+      onselect:
+        - type: eventfire
+          opts:
+            event: onvars
+
+      menu:
+        items:
+          - text: Toast Name
+            only:
+              singleselect: true
+            onclick:
+              - type: toast
+                opts:
+                  title: success
+                  mesgvar: $rows.0.name
+
+          - text: Toast Row Count
+            onclick:
+              - type: updatevars
+                opts:
+                  operations:
+                    - type: callstorm
+                      name: rowcountmesg
+                      query: |
+                        return($lib.str.format('{count} packages are selected', count=$rows.size()))
+              - type: toast
+                opts:
+                  title: success
+                  mesgvar: $rowcountmesg
+
+
+      columns:
+        - iden: pkgname
+          key: name
+          label: Name
+
+        - iden: pkgversion
+          key: version
+          label: Version
+
+        - iden: optic
+          key: optic
+          label: Optic
+
+  datatable-multiselect--output:
+    title: pkg sizes
+
+    type: textarea
+
+    subs:
+      - src: datatable-multi--tbl
+        events: [ onvars ]
+
+    events:
+      onvars:
+        - type: updatevars
+          opts:
+            operations:
+              - type: callstorm
+                name: $pkgsizes
+                query: |
+                  $retn = ({})
+
+                  for $row in $rows {
+                    $name = $row.name
+
+                    $retn.$name = $lib.json.save($lib.pkg.get($name)).size()
+                  }
+
+                  return($retn)
+        - type: refresh
+
+    opts:
+      invar: $pkgsizes
+
+      # disallow editing
+      readonly: true
+
+      # displaying JSON
+      type: json
+
+      placeholder: Select package(s) to see their size

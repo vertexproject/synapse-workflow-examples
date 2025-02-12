@@ -1,0 +1,266 @@
+---
+desc: Demonstrate the Workflow Element and `storm` and `callstorm` Actions `spinner` opt.
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: min-content 1fr
+  cols: repeat(2, minmax(512px, 1fr))
+
+  areas: |
+    btns ....
+    view layr
+
+  elements:
+    spinner--buttons: btns
+    spinner--views-tbl: view
+    spinner--layers-tbl: layr
+
+elements:
+  spinner--buttons:
+    type: buttons
+
+    opts:
+      buttons:
+        - text: Execute storm action to feed views table
+          disabled: $running
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: running
+                    value: true
+
+            - type: storm
+
+              opts:
+                render: false
+
+                spinner:
+                  - spinner--views-tbl
+
+                feed:
+                  spinner--views-tbl:
+                    - storm:fire
+
+                query: |
+                  $lib.time.sleep(1)
+
+                  for $view in $lib.view.list() {
+                    $row = ({
+                      "iden": $view.get(iden),
+                      "name": $view.get(name),
+                      "desc": $view.get(desc),
+                      "parent": $lib.view.get($view.get(parent)).get(name),
+                    })
+
+                    if ($view.get(creator) != $lib.null) {
+                      $user = $lib.auth.users.get($view.get(creator))
+                      if ($user != $lib.null) { $row.creator = $user.get(name) }
+                    }
+
+                    $lib.fire('optic:datatable:row', row=$row)
+
+                    $lib.time.sleep(0.5)
+                  }
+
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: running
+                    value: false
+
+        - text: Targeted storm action to load views table
+          disabled: $running
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: running
+                    value: true
+
+            - type: storm
+
+              target: spinner--views-tbl
+
+              opts:
+                spinner: true
+
+                query: |
+                  $lib.time.sleep(1)
+
+                  for $view in $lib.view.list() {
+                    $row = ({
+                      "iden": $view.get(iden),
+                      "name": $view.get(name),
+                      "desc": $view.get(desc),
+                      "parent": $lib.view.get($view.get(parent)).get(name),
+                    })
+
+                    if ($view.get(creator) != $lib.null) {
+                      $user = $lib.auth.users.get($view.get(creator))
+                      if ($user != $lib.null) { $row.creator = $user.get(name) }
+                    }
+
+                    $lib.fire('optic:datatable:row', row=$row)
+
+                    $lib.time.sleep(0.5)
+                  }
+
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: running
+                    value: false
+
+  spinner--views-tbl:
+    type: datatable
+
+    title: <a title>
+
+    spinner: true
+
+    doc:
+      tooltip: This table will take a while to load, you can cancel a running query with the spinner in the titlebar.
+
+    buttons:
+      - text: An element button
+        onclick:
+          - type: toast
+            opts:
+              title: success
+              mesg: Hello from button
+
+    menu:
+      items:
+        - text: Foo
+          onclick:
+            - type: toast
+              opts:
+                title: success
+                mesg: Foo
+
+    opts:
+      menu:
+        items:
+          - text: Foo
+            onclick:
+              - type: toast
+                opts:
+                  title: success
+                  mesg: Foo
+
+      onselect:
+        - type: updatevars
+          opts:
+            operations:
+              - type: var
+                name: viewiden
+                var: $rows.0.iden
+
+        - type: eventfire
+          opts:
+            event: onvars
+            vars:
+              - viewiden
+
+      columns:
+        - iden: name
+          key: name
+          label: Name
+
+        - iden: desc
+          key: desc
+          label: Description
+
+        - iden: creator
+          key: creator
+          label: Creator
+
+        - iden: parent
+          key: parent
+          label: Parent
+
+        - iden: iden
+          key: iden
+          label: iden
+
+  spinner--layers-tbl:
+    type: datatable
+
+    spinner: true
+
+    title: View layers
+
+    doc:
+      tooltip: |
+        This table will take a while to load, you can cancel a running query with the spinner in the titlebar.
+
+    menu:
+      items:
+        - text: Foo
+          onclick:
+            - type: toast
+              opts:
+                title: success
+                mesg: Foo
+
+    subs:
+      - src: spinner--views-tbl
+        events:
+          - onvars
+
+    events:
+      onvars:
+        - type: storm
+          opts:
+            query: |
+              for $layr in $lib.view.get($viewiden).get(layers) {
+                  $row = ({
+                    "iden": $layr.iden,
+                    "name": $layr.name,
+                    "desc": $layr.desc,
+                    "size": $layr.totalsize
+                  })
+
+                  if ($layr.creator != $lib.null) {
+                    $user = $lib.auth.users.get($layr.creator)
+                    if ($user != $lib.null) { $row.creator = $user.get(name) }
+                  }
+
+                  $lib.fire('optic:datatable:row', row=$row)
+
+              }
+
+    opts:
+      emptymesg: Select a View to display its Layers.
+
+      disableselect: true
+
+      columns:
+        - iden: name
+          key: name
+          label: Name
+
+        - iden: desc
+          key: desc
+          label: Description
+
+        - iden: creator
+          key: creator
+          label: Creator
+
+        - iden: size
+          key: size
+          label: Size
+
+        - iden: iden
+          key: iden
+          label: iden

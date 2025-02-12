@@ -1,0 +1,231 @@
+desc: A stormform element with buttons to submit / rollback
+
+optic_minversion: [2, 83, 0]
+
+debug: true
+
+layout:
+  type: default
+
+  elements:
+    form-btns-form: {w: 6, h: 9, x: 0, y: 0}
+    form-btns-fields-textarea: {w: 6, h: 12, x: 6, y: 0}
+
+defs:
+  successtoast: &successtoast
+    type: toast
+
+    filters:
+      only:
+        var: $ok
+        eq: true
+    opts:
+      title: success
+      mesgvar: $mesg
+
+elements:
+  form-btns-form:
+    type: stormform
+
+    oninit:
+      - type: updatevars
+        opts:
+          operations:
+            - type: set
+              name: foo
+              value: ''
+            - type: set
+              name: clean
+              value: true
+
+    style:
+      border: false
+
+    defs:
+      updatefields: &updatefields
+        - type: eventfire
+          opts:
+            event: onvars
+            vars: [fields]
+
+        - type: updatevars
+          opts:
+            operations:
+              - type: set
+                name: clean
+                value: false
+              - type: set
+                name: ok
+                value: false
+
+      submitform: &submitform
+        - type: callstorm
+
+          filters:
+            only:
+              var: $foo
+              neq: error
+
+          opts:
+            query: |
+              // do stuff with $fields
+
+              $lib.print($fields)
+
+              // you can return a dict of vars to be set on the element
+              return(
+                ({
+                  'ok': true,
+                  'mesg': `Foo is now {$foo.upper()}`
+                })
+              )
+
+        - *successtoast
+
+        - type: stop
+          filters:
+            only:
+              var: $ok
+              eq: true
+
+        - type: callstorm
+          filters:
+            only:
+              var: $foo
+              eq: error
+          opts:
+            query: |
+              // something was wrong with user input (the foo field) so we can return
+              // error messages for one or more fields.
+              $fielderrs = ({'foo': 'your foo value was not valid'})
+
+              // the return must be a dict with the `fielderrs` key
+              return(({'ok': false, 'fielderrs': $fielderrs}))
+
+        - type: toast
+          filters:
+            only:
+              var: $ok
+              eq: false
+          opts:
+            title: error
+            mesg: it didn't work...
+
+    onload:
+      - type: sendfocus
+        opts:
+          field: foo-field
+
+      - type: eventfire
+        opts:
+          event: onvars
+          vars: [fields]
+
+
+    opts:
+      fields:
+        - type: input
+          name: foo
+          label: Foo input
+
+          onenter: *submitform
+          onchange: *updatefields
+
+          opts:
+            placeholder: 'anything | error'
+
+        - type: input
+          name: bar
+          label: Bar input
+
+          onchange: *updatefields
+
+          opts:
+            placeholder: 'an extra field'
+
+        - type: dropdown
+          name: sel
+          label: Choose one thing (dropdown)
+
+          onchange: *updatefields
+
+          opts:
+            placeholder: 'Only when not chosen'
+            values:
+              type: callstorm
+              opts:
+                query: |
+                  $options = $lib.yaml.load('''
+                    - { text: 'Foo Bar', value: 'foo-bar' }
+                    - { text: 'Baz', value: baz }
+                  ''')
+
+                  return($options)
+
+        - type: multiselect
+          name: selections
+          label: Choose multiple (multiselect)
+
+          onchange: *updatefields
+
+          opts:
+            placeholder: 'This will always be visible'
+            values:
+              type: callstorm
+              opts:
+                query: |
+                  $options = $lib.yaml.load('''
+                    - { text: 'Foo Bar', value: 'foo-bar', enabled: true }
+                    - { text: 'Baz', value: baz, enabled: false }
+                  ''')
+
+                  return($options)
+      buttons:
+        - text: Submit
+          tooltip: Do it
+          disabled: $clean
+          onclick: *submitform
+
+        - text: Reset
+          tooltip: Reset form values
+          disabled: $clean
+          onclick:
+            - type: delvars
+
+            # refresh the form since we mutated the vars
+            - type: refresh
+
+            - type: eventfire
+              opts:
+                event: onvars
+                vars: [fields]
+
+            - type: toast
+              opts:
+                title: success
+                mesg: fresh start!
+
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: clean
+                    value: true
+
+
+  form-btns-fields-textarea:
+    title: $fields var contents
+    type: textarea
+
+    subs:
+      - src: form-btns-form
+        events: [onvars]
+
+    events:
+      onvars:
+        - type: refresh
+
+    opts:
+      type: json
+      invar: $fields
+      readonly: true
