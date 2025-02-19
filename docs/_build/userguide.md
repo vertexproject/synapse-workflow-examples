@@ -16,6 +16,10 @@ It is highly recommended to validate Workflow YAML with the provided
 [JSON Schemas](#json-schemas) in both development (in editor) and CI/CD
 test suites.
 
+The source code for the Synapse-Workflow-Examples Rapid Power-Up can be
+found at
+[synapse-workflow-examples](https://github.com/vertexproject/synapse-workflow-examples).
+
 ## Optic Workflows
 
 Workflows can be used to build dynamic UX from provided Elements and

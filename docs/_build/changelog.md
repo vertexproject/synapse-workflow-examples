@@ -1,5 +1,17 @@
 # Synapse-Workflow-Examples Changelog
 
+## v1.11.0 - 2025-02-19
+
+### Features and Enhancements
+
+-   
+
+    The source code for Synapse-Workflow-Examples Rapid Power-Up is now published to
+
+    :   [synapse-workflow-examples](https://github.com/vertexproject/synapse-workflow-examples)
+
+    on GitHub.
+
 ## v1.10.0 - 2025-01-17
 
 ### Features and Enhancements

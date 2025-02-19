@@ -14,6 +14,11 @@ elements:
     title: Example Workflows
     type: datatable
 
+    doc:
+      # An example of inline markdown used to document an element.
+      markdown: |
+        The original source code for these examples can be found at [synapse-workflow-examples](https://github.com/vertexproject/synapse-workflow-examples/).
+
     onload:
       - type: storm
         opts:

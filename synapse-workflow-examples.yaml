@@ -1,5 +1,5 @@
 name: synapse-workflow-examples
-version: 1.10.0
+version: 1.11.0
 synapse_version: '>=2.165.0,<3.0.0'
 desc: |
   Synapse-Workflow-Examples provides examples and documentation to assist in building Optic Workflows.
