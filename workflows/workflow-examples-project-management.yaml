@@ -12,17 +12,17 @@ layout:
   rows: fit-content(144px) 1fr
   cols: 3fr minmax(512px, 1fr)
 
-  areas: |
-    top top
-    tix det
-
   elements:
     proj-mgmt-topbar: top
     proj-mgmt-tickets-table: tix
     proj-mgmt-ticket-details: det
 
+  areas: |
+    top top
+    tix det
+
 elements:
-  # A form that configures an input for $search, and dropdowns for $project and $sprint variables.
+  # A stormform with an input for $search, and dropdowns for $project and $sprint variables.
   proj-mgmt-topbar:
     type: stormform
 
@@ -47,12 +47,12 @@ elements:
 
       fields:
         # The search input
-        - iden: d63e9d37b2864bd6adf822cd66ef43d2
-          type: input
 
           # the name of the var this field will be bound to.
-          name: search
+        - name: search
           label: Search
+
+          type: input
 
           opts:
             # defines the input placeholder text.
@@ -65,8 +65,7 @@ elements:
                 event: onvars
 
         # The project dropdown
-        - iden: 61ce716777ba7ac3f41ece51ab2e4244
-          name: project
+        - name: project
           label: Project
 
           type: dropdown
@@ -98,7 +97,7 @@ elements:
             # refresh so the sprint dropdown shows only sprints in this project.
             - type: refresh
 
-            # the fire the updated $project and $sprint vars to subscribing Elements.
+            # fire the updated $project and $sprint vars to subscribers.
             - type: eventfire
               opts:
                 event: onvars
@@ -137,9 +136,10 @@ elements:
                 event: onvars
 
 
-  # The table that will display the matching proj:ticket Nodes.
+  # The stormtable that will display the matching proj:ticket nodes.
   proj-mgmt-tickets-table:
     title: Project Tickets
+
     type: stormtable
 
     # load all proj:tickets on the initial load.
@@ -154,7 +154,7 @@ elements:
         events: [ onvars ]
 
     events:
-      # load proj:ticket nodes based on $project, $sprint and $search Vars we receive from the stormform.
+      # load proj:ticket nodes based on $project, $sprint and $search vars we receive from the stormform.
       onvars:
         - type: storm
           opts:

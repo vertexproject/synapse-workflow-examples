@@ -173,10 +173,6 @@ elements:
                 opts:
                   queryvar: $walkquery
 
-          - text: A disabled menu option
-            onclick: []
-            disabled: true
-
       columns:
         - iden: pkgname
           key: name
@@ -206,20 +202,15 @@ elements:
         - type: updatevars
           opts:
             operations:
+              - type: del
+                name: pkgdef
+
               - type: callstorm
                 name: pkgdef
                 query: |
                   return($lib.pkg.get($pkgname))
-        - type: refresh
 
-    menu:
-      items:
-        - text: Foo
-          onclick:
-            - type: toast
-              opts:
-                title: success
-                mesg: Foo
+        - type: refresh
 
     opts:
       placeholder: Select a package to view its pkgdef.

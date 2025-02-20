@@ -15,24 +15,32 @@ elements:
     menu:
       items:
         - text: Hello Local
-          tooltip: Say Hello locally in storm and output to the stormconsole in the Foo tab.
+          tooltip: Print Hello locally in storm and output to the stormconsole in the FOO tab.
           onclick:
             - type: storm
               opts:
                 query: $lib.print('Hello Foo')
 
+                # the tabs element can't render messages streaming from a
+                # storm query so we set render false and direct our output to the console below
                 render: false
 
+                # Send query output to the foo-console element
                 console:
                   iden: foo-console
 
         - text: Hello World
-          tooltip: Say Hello World in storm and output to the global console.
+          tooltip: Print Hello World in storm and output to the global console.
           onclick:
             - type: storm
               opts:
                 query: $lib.print('Hello World')
+
+                # the tabs element can't render messages streaming from a
+                # storm query so we set render false and direct our output to the console below
                 render: false
+
+                # Send query output to the Console tool
                 console:
                   global: true
 
@@ -42,57 +50,71 @@ elements:
         - text: <sep>category
 
         - text: Submenu
-          tooltip: Do more stuff
           options:
-            - text: hehe
+            - text: Hello Again World
+              tooltip: Print Hello Again World in storm and output to the global console.
               onclick:
                 - type: storm
                   opts:
-                    query: $lib.print('Hello World')
+                    query: $lib.print('Hello Again World')
+
                     render: false
+
                     console:
                       global: true
 
     opts:
       tabs:
+        # a tab containing a stormconsole element that one of the element menu options outputs to
         - text: Foo
+
           iden: foo-tab
+
           layout:
             type: cssgrid
+
           elements:
             foo-console:
               type: stormconsole
+
               style:
                 border: false
 
   queryeditor-elmnt:
-    type: queryeditor
+    type: textarea
+
+    menu:
+      items:
+        - text: Open an inline modal Workflow
+          onclick:
+            - type: openmodal
+              opts:
+                # Define the workflow to be opened in the modal inline
+                workflow:
+                  iden: qe-modal-thing
+
+                  name: qe-modal
+
+                  desc: inline qe modal workflow
+
+                  layout:
+                    type: cssgrid
+
+                  elements:
+                    # a markdown element displaying static markdown
+                    some-markdown:
+                      type: markdown
+
+                      opts:
+                        markdown: |
+                          # My Static Markdown
+
+                          * A markdown list
+                          * with multiple items
+
+                          ## Other Important stuff
+
+                          This Element and the containing Workflow were defined inline in the `openmodal` action.
 
     opts:
-      # defining menu items this way is now deprecated.
-      # Migrate to defining menu items at the element level.
-      menu:
-        items:
-          - text: do it
-            onclick:
-              - type: openmodal
-                opts:
-                  workflow:
-                    iden: qe-modal-thing
-                    name: qe-modal
-                    desc: inline qe modal workflow
-                    layout:
-                      type: cssgrid
-
-                    elements:
-                      qe-modal-tbl:
-                        type: datatable
-
-                        opts:
-                          columns:
-                            - iden: foo
-                              label: foo
-                              key: foo
-                            - iden: bar
-                              label: bar
-                              key: bar
+      placeholder: An empty textarea with an element menu

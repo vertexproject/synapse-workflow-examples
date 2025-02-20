@@ -1,22 +1,35 @@
-desc: Example of a datatable Element that dynamically configures its columns and other opts.
+desc: Example of a datatable Element that dynamically configures its columns and other opts using a storm query.
 
 debug: true
 
 optic_minversion: [2, 83, 0]
 
 layout:
+  type: cssgrid
+
   elements:
-    datatable-dynamic--table: { w: 12, h: 5, x: 0, y: 0 }
-    datatable-dynamic--console: { w: 8, h: 20, x: 0, y: 5 }
-    datatable-dynamic--extra-textarea: { w: 4, h: 20, x: 8, y: 5 }
+    datatable-dynamic--table: tabl
+    datatable-dynamic--console: cnsl
+    datatable-dynamic--extra-textarea: data
+
+  rows: 240px 1fr
+  cols: repeat(3, 1fr)
+
+  areas: |
+    tabl tabl tabl
+    cnsl cnsl data
 
 elements:
   datatable-dynamic--table:
     type: datatable
 
+    # `onload` actions run immediately after the element's initial render.
+    # Here we use a storm query to configure the table's columns, and opts.
+    # After the table is configured the query loads 3 rows
     onload:
       - type: storm
         opts:
+          # direct the query output to our own console element.
           console:
             iden: datatable-dynamic--console
 
@@ -58,15 +71,16 @@ elements:
             $lib.print('Configuring datatable opts')
             $lib.pprint($opts)
 
+            // fire the message to configure the datatable element
             $lib.fire('optic:datatable:init', opts=$opts)
 
             // start firing rows
-            $lib.print('Firing 3 rows')
+            $lib.print('Firing 4 rows')
 
             $row = ({'foo': 'woot', 'bar': 'hehe', 'baz': 'haha', 'dur': 128256, 'extra': 'extra stuff'})
             $lib.fire('optic:datatable:row', row=$row)
 
-            $row = ({'foo': 'w00t', 'bar': 'a long value that will overflow the width of the cell and display a tooltip on hover', 'extra': 'it could be anything, even structured'})
+            $row = ({'foo': 'w00t', 'bar': 'a long value that will overflow the width of the cell and display a tooltip on hover', 'extra': 'could be anything including structured data'})
             $lib.fire('optic:datatable:row', row=$row)
 
             $multiline = $lib.str.join("\n", (['whoa a multiline', 'string that contains at least one new line', 'and therefore overflows', 'the row height']))
@@ -76,11 +90,10 @@ elements:
             $row = ({'foo': 'quux', 'bar': 'haha', 'baz': 'yo yo yo yo yo'})
             $lib.fire('optic:datatable:row', row=$row)
 
-            $lib.print('cya')
-
     opts:
       selectionstyle: bg
 
+      # fire row data to subscribers when a row is selected
       onselect:
         - type: updatevars
           opts:
@@ -94,6 +107,7 @@ elements:
             event: onvars
             vars: [data]
 
+  # a console to display the output of the query that configures the datatable and loads rows into it
   datatable-dynamic--console:
     title: output
     type: stormconsole
@@ -101,6 +115,7 @@ elements:
     opts:
       autoscroll: false
 
+  # a textarea to display the selected row's extra data
   datatable-dynamic--extra-textarea:
     title: extra stuff
     type: textarea
@@ -132,7 +147,7 @@ elements:
                 name: extra
                 var: $data.extra
 
-        # update the placeholder opt to indicate when the selected row has now extra data.
+        # update the placeholder opt to indicate when the selected row has no extra data.
         - type: updateopts
           opts:
             operations:
@@ -140,6 +155,7 @@ elements:
                 name: placeholder
                 value: 'no extra data for this row'
 
+        # refresh to let the textarea render the new extra data and placeholder
         - type: refresh
 
     opts:

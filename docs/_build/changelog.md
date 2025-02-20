@@ -1,5 +1,12 @@
 # Synapse-Workflow-Examples Changelog
 
+## v1.12.0 - 2025-02-20
+
+### Features and Enhancements
+
+-   Modernized workflow examples.
+-   Added example for a workflow node action.
+
 ## v1.11.0 - 2025-02-19
 
 ### Features and Enhancements

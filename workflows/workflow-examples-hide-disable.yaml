@@ -40,41 +40,33 @@ elements:
     title: Toggles
     type: stormform
 
+    defs:
+      base-toggle: &base-toggle
+        type: toggle
+
+        onchange:
+          - type: eventfire
+            opts:
+              event: onvars
+
+        opts:
+          activeText: ''
+          inActiveText: ''
+
     opts:
       layout:
         orientation: horizontal
 
       fields:
-        - iden: 732b80a8530f41a8bd9278056e9dd36b
-          type: toggle
+        - <<: *base-toggle
           name: foohidden
           label: Hide Foo
 
-          onchange:
-            - type: eventfire
-              opts:
-                event: onvars
-
-          opts:
-            activeText: ''
-            inActiveText: ''
-
-        - iden: 249237ebdf5c4a259a3734865e6ebd5b
-          type: toggle
+        - <<: *base-toggle
           name: foodisabled
           label: Disable Foo
 
-          onchange:
-            - type: eventfire
-              opts:
-                event: onvars
-
-          opts:
-            activeText: ''
-            inActiveText: ''
-
-        - iden: 8c12d488441743ecaaafbc0f0df76f7b
-          type: toggle
+        - <<: *base-toggle
           name: bardisablebazhide
           label: Disable Bar / Hide Baz
 
@@ -93,53 +85,17 @@ elements:
               opts:
                 event: onvars
 
-          opts:
-            activeText: ''
-            inActiveText: ''
-
-        - iden: b8b2f11f957348389f9c23dbe0e69365
-          type: toggle
+        - <<: *base-toggle
           name: bazenabled
           label: Enable Baz
 
-          onchange:
-            - type: eventfire
-              opts:
-                event: onvars
-
-
-          opts:
-            activeText: ''
-            inActiveText: ''
-
-        - iden: 1414d9d2d406405c8d5455c0a2fdf026
-          type: toggle
+        - <<: *base-toggle
           name: isvip
           label: VIP
 
-          onchange:
-            - type: eventfire
-              opts:
-                event: onvars
-
-
-          opts:
-            activeText: ''
-            inActiveText: ''
-
-        - iden: 9340301954a24d8885cd5a575f5998e3
-          type: toggle
+        - <<: *base-toggle
           name: quuxhidden
           label: Hide Quux
-
-          onchange:
-            - type: eventfire
-              opts:
-                event: onvars
-
-          opts:
-            activeText: ''
-            inActiveText: ''
 
   hide-disable--foo-btns:
     title: Foo Element
@@ -207,8 +163,7 @@ elements:
 
     opts:
       fields:
-        - iden: 6eb860ac9fdd4428be3c1b4250369a82
-          type: input
+        - type: input
 
           name: golly
           label: Baz golly
@@ -216,8 +171,7 @@ elements:
           opts:
             placeholder: a baz value
 
-        - iden: 3c09fa9c7c424c34b404c9146957f3f5
-          type: input
+        - type: input
 
           name: npv
           label: Not necessary for VIPs

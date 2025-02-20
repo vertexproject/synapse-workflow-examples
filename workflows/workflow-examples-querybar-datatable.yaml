@@ -5,11 +5,17 @@ optic_minversion: [2, 83, 0]
 debug: true
 
 layout:
-  type: default
+  type: cssgrid
+
+  rows: min-content 1fr
 
   elements:
-    querybar-datatable--querybar: { x: 0, y: 0, w: 8, h: 3 }
-    querybar-datatable--datatable: { x: 0, y: 3, w: 8, h: 12 }
+    querybar-datatable--querybar: qbar
+    querybar-datatable--datatable: tabl
+
+  areas: |
+    qbar
+    tabl
 
 elements:
   querybar-datatable--querybar:
@@ -67,15 +73,14 @@ elements:
     type: datatable
 
     opts:
+      emptymesg: Run a query to populate the table.
+
       columns:
         - iden: foo
           key: foo
-          label: foo
+
         - iden: bar
           key: bar
-          label: bar
+
         - iden: baz
           key: baz
-          label: baz
-
-      emptymesg: Nothing found

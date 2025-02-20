@@ -5,7 +5,7 @@ optic_minversion: [2, 83, 0]
 layout:
   type: cssgrid
 
-  rows: fit-content(144px) minmax(256px, max-content)
+  rows: max-content minmax(256px, max-content)
 
 elements:
   macroviewer-selector:
@@ -16,9 +16,10 @@ elements:
 
     opts:
       fields:
-        - iden: 6e17ea633a2f45de9ba5c9083c911091
-          type: dropdown
+        - type: dropdown
+
           name: macroname
+
           width:
             min: 256px
 
@@ -57,6 +58,8 @@ elements:
               return($lib.macro.get($macroname).storm)
 
     opts:
+      # disallow editing
       readonly: true
+
+      # render as a storm query
       syntax: storm
-      outvar: pendingstorm

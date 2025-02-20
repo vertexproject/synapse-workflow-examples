@@ -1,5 +1,5 @@
 name: synapse-workflow-examples
-version: 1.11.0
+version: 1.12.0
 synapse_version: '>=2.165.0,<3.0.0'
 desc: |
   Synapse-Workflow-Examples provides examples and documentation to assist in building Optic Workflows.
@@ -19,73 +19,121 @@ docs:
   - title: Changelog
     path: docs/_build/changelog.md
 
+modules:
+  # a storm module containing main and/or common functionality
+  - name: workflowexamples.structureexample
+
+  # a storm module with workflow specific functionality
+  - name: workflowexamples.structureexample.workflows
+
+commands:
+  - name: workflowexamples.structureexample.jsonnodes
+    descr: |
+      Print the inbound node as json. There are options to repr values and pretty print the json.
+
+    cmdargs:
+      - - --repr
+        - type: bool
+          default: false
+          action: store_true
+          help: Include the reprs for applicable node values.
+
+      - - --pretty
+        - type: bool
+          default: false
+          action: store_true
+          help: Pretty print the json.
+
 optic:
+  actions:
+    # define a node action to run our command on the selected nodes and output to the Console tool
+    - name: print nodes json
+      descr: Print the inbound nodes as json to the Console tool.
+      storm: workflowexamples.structureexample.jsonnodes
+
+    # define a node action invoke our workflow that will run our command on the selected nodes and output to it's own console
+    - name: view nodes json
+      descr: View the nodes as json in a Workflow modal
+
+      # specify the iden of the workflow that should be opened
+      workflow: workflow-examples-structureexample-jsonnodes
+
+      # open the workflow in a modal instead of navigating to it
+      workflowmodal: true
+
+      workflowmodalopts:
+        # optionally give the modal a title. If not provided the modal title will be the title of the workflow.
+        title: View Nodes as JSON
+
+        # optionally specify modal dimensions. Valid css units are supported.
+        dimensions:
+          height: 60vh
+          minheight: 512px
+
+          width: 40vw
+          maxwidth: 1280px
+
+  # specify the Workflows that should be selectable in the Workflows tool.
   displays:
-    - title: Project Management
-      workiden: workflow-examples-project-management
-
-    - title: Form + Table + Viewer
+    - title: Form, Table, and Viewer
       workiden: workflow-examples-form-table-viewer
-
-    - title: Datatable
-      workiden: workflow-examples-datatable
-
-    - title: Datatable - Multiselect
-      workiden: workflow-examples-datatable-multiselect
-
-    - title: Datatable - Dynamic
-      workiden: workflow-examples-datatable-dynamic
-
-    - title: Basic Storm Editor
-      workiden: workflow-examples-stormeditor
-
-    - title: Storm Editor (Delegated)
-      workiden: workflow-examples-stormeditor-delegated
-
-    - title: Node Creator
-      workiden: workflow-examples-nodecreator
 
     - title: Macro Viewer
       workiden: workflow-examples-macroviewer
 
-    - title: HTML Editor
-      workiden: workflow-examples-htmleditor
-
-    - title: Modal Flow
-      workiden: workflow-examples-modalflow
-
-    - title: Workflow Example Code
-      workiden: workflow-examples-workflowcode
-
-    - title: Hidden / Disabled
-      workiden: workflow-examples-hide-disable
-
-    - title: Form with Buttons
-      workiden: workflow-examples-form-buttons
-
-    - title: Querybar - Datatable
-      workiden: workflow-examples-querybar-datatable
-
-    - title: Queryeditor - Datatable
-      workiden: workflow-examples-queryeditor-datatable
-
-    - title: Queryeditor - Stormtable
-      workiden: workflow-examples-queryeditor-storm
-
-    - title: Workflow Permissions
-      workiden: workflow-examples-permissions-example
-
-    - title: Tabs Element Example
-      workiden: workflow-examples-tabs-element-example
+    - title: Project Management
+      workiden: workflow-examples-project-management
 
     - title: Tabbed Org Explorer
       workiden: workflow-examples-tabbed-org-explorer
 
-    - title: Generic Element menu
+    - title: Datatable
+      workiden: workflow-examples-datatable
+
+    - title: Datatable (multiselect)
+      workiden: workflow-examples-datatable-multiselect
+
+    - title: Datatable (dynamic)
+      workiden: workflow-examples-datatable-dynamic
+
+    - title: Form with Buttons
+      workiden: workflow-examples-form-buttons
+
+    - title: Querybar and Datatable
+      workiden: workflow-examples-querybar-datatable
+
+    - title: Queryeditor and Datatable
+      workiden: workflow-examples-queryeditor-datatable
+
+    - title: Queryeditor and Stormtable
+      workiden: workflow-examples-queryeditor-storm
+
+    - title: Storm Editor (basic)
+      workiden: workflow-examples-stormeditor
+
+    - title: Storm Editor (delegated)
+      workiden: workflow-examples-stormeditor-delegated
+
+    - title: Tabs Element Example
+      workiden: workflow-examples-tabs-element-example
+
+    - title: Textarea (HTML)
+      workiden: workflow-examples-htmleditor
+
+    - title: Element menu
       workiden: workflow-examples-element-menu
 
-    - title: Generic Element buttons
+    - title: Element buttons
       workiden: workflow-examples-element-titlebar-buttons
 
-    - title: Generic Element query spinner
+    - title: Element spinner
       workiden: workflow-examples-element-spinner
+
+    - title: Modal Flow
+      workiden: workflow-examples-modalflow
+
+    - title: Hidden and Disabled
+      workiden: workflow-examples-hide-disable
+
+    - title: Workflow Permissions
+      workiden: workflow-examples-permissions-example

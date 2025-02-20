@@ -5,9 +5,19 @@ optic_minversion: [2, 83, 0]
 debug: true
 
 layout:
+  type: cssgrid
+
+  rows: 256px 1fr
+
+  cols: 1fr 1fr
+
   elements:
-    qb-storm--queryeditor: { x: 0, y: 0, w: 6, h: 5 }
-    qb-storm--table: { x: 0, y: 5, w: 8, h: 12 }
+    qb-storm--queryeditor: edtr
+    qb-storm--table: tabl
+
+  areas: |
+    edtr
+    tabl
 
 elements:
   qb-storm--queryeditor:
@@ -19,66 +29,66 @@ elements:
     onload:
       - type: sendfocus
 
+    menu:
+      items:
+        - text: bar mode
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: foomode
+                    value: bar
+        - text: baz mode
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: set
+                    name: foomode
+                    value: baz
+
+
     opts:
+      # this var will always have the current query in the editor and updates when the user makes changes
       outvar: $query
 
       placeholder: any inet:fqdn storm query
 
+      # specify storm syntax to gain highlighting and autocompletion
       syntax: storm
-
-      menu:
-        items:
-          - text: bar mode
-            onclick:
-              - type: updatevars
-                opts:
-                  operations:
-                    - type: set
-                      name: foomode
-                      value: 'bar'
-          - text: baz mode
-            onclick:
-              - type: updatevars
-                opts:
-                  operations:
-                    - type: set
-                      name: foomode
-                      value: 'baz'
-
-          - text: disabled option
-            disabled: true
-
-          - text: Other option
 
       onrun:
         - type: storm
           opts:
             queryvar: $query
 
+            # feed the messages from the storm query to the stormtable element
             feed:
               qb-storm--table: true
 
         - type: toast
           opts:
             title: success
-            mesg: completed
+            mesg: query completed
 
+      # toast when the user clicks the spinner to stop the query
       onstop:
         - type: toast
           opts:
             title: warn
-            mesg: screeeetch
+            mesg: you stopped the query before it finished
 
   qb-storm--table:
     type: stormtable
 
     opts:
-      form: 'inet:fqdn'
+      form: inet:fqdn
 
       columns:
         - type: form
           opts:
-            title: 'inet:fqdn'
+            title: inet:fqdn
         - type: prop
           opts:
             prop: issuffix
@@ -89,11 +99,14 @@ elements:
           opts:
             prop: zone
 
+      # define a menu to be displayed on each row
       menu:
         items:
-          - text: 'Lift Nodes in research'
-            tooltip: 'Uses a getvars Action to generate a storm query that will lift the selected Nodes. The UI will then be navigated to the Research tool and the query will be executed.'
+          - text: Lift Nodes in research
+            tooltip: Uses a getvars Action to generate a storm query that will lift the selected Nodes. The UI will then be navigated to the Research tool and the query will be executed.
             onclick:
+              # execute a getvars action to generate a query to lift all the selected nodes.
+              # selected nodes are automatically inbounded to the storm query.
               - type: getvars
                 opts:
                   query: |
@@ -109,22 +122,19 @@ elements:
                       return(({"liftquery": $lib.str.join(' ', $queries)}))
                     }
 
+              # will navigate the user to the Research tool Tabular display mode and execute the query in $liftquery
               - type: researchquery
                 opts:
                   queryvar: $liftquery
                   displaymode: table
 
-              # This action will never get executed.
-              # - type: toast
-              #   opts:
-              #     title: newp
-              #     mesg: will not be executed because we navigated to research.
-
+          # Example of disabling an option based on the node
           - text: only zones
             disabled: not $nodes.0.props.iszone
 
       onselect:
         - type: toast
+
           opts:
             title: success
             mesg: selected

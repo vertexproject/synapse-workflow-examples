@@ -1,4 +1,4 @@
-desc: Builds from the Form + Table + Viewer example by using the `tabs` Element to improve data density.
+desc: Builds from the Form + Table + Viewer example by using the `tabs` Element to better organize elements.
 
 optic_minversion: [2, 83, 0]
 
@@ -18,9 +18,8 @@ layout:
     org-expl--tabs: info
 
 elements:
-  # A Form with a single text <input>. Any time the <input> changes this Element will
-  # fire an `onvars` Event that will contain the current value of the <input> as the `$orgsearch` variable.
-
+  # A storm with a single input field. When the user changes the field's value the Element will
+  # fire an `onvars` Event that will contain the current value as the `$orgsearch` var.
   org-expl--searchbar:
     title: Org Name Search
     type: stormform
@@ -41,6 +40,7 @@ elements:
 
           label: ou:org search
 
+          # fire an onvars Event when the value is changed
           onchange:
             - type: eventfire
               opts:
@@ -49,7 +49,7 @@ elements:
           opts:
             placeholder: ou:org name prefix
 
-  # A Table that will query for *ou:org* Nodes with $orgsearch in their name.
+  # A stormtable that will query for ou:org nodes with $orgsearch in their name.
   # The nodes will be rendered in the table with 2 columns, and fire an `onnodes` Event
   # whenever an ou:org is selected.
   org-expl--org-table:
@@ -61,7 +61,7 @@ elements:
       - src: org-expl--searchbar
         events: [ onvars ]
 
-    # `events` defines a list of Actions to take onreceiving a particular type of event.
+    # `events` defines a list of Actions to take on receiving a particular type of event.
     events:
       onvars:
         - type: storm
@@ -71,9 +71,10 @@ elements:
     opts:
       form: ou:org
 
+      # don't allow multiple rows to be selected at the same time.
       disablemultiselect: true
 
-      # the Actions to execute when a node is selected in the table.
+      # when a row is selected fire an onnodes event with the selected node to subscribers
       onselect:
         - type: nodesfire
           opts:

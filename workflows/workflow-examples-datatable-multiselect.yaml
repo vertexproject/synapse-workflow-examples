@@ -1,4 +1,4 @@
-desc: Example of a datatable Element supports multiselection and running a storm query using the selected rows
+desc: Example of a datatable Element supporting multiselection and running a storm query using the selected rows.
 
 optic_minversion: [2, 83, 0]
 
@@ -11,41 +11,39 @@ elements:
   datatable-multi--tbl:
     type: datatable
 
+    # Provide an element level menu option to select all the rows in the table using the `selectdata` Action.
     menu:
       items:
         - text: Select All
           onclick:
             - type: selectdata
               opts:
-                idensvar: $allrowidens
+                idensvar: $allpkgidens
 
     onload:
+      # load a row for each package loaded in the cortex.
       - type: storm
         opts:
           query: |
+            // keep a list of all idens to provide the 'Select All' functionality
+            $allpkgidens = ([])
+
             for $pkg in $lib.pkg.list() {
               $row = ({'name': $pkg.name, 'iden': $pkg.name, 'version': $pkg.version, 'optic': ($pkg.optic != $lib.null)})
 
               $lib.fire('optic:datatable:row', row=$row)
-            }
-      - type: updatevars
-        opts:
-          operations:
-            - type: callstorm
-              name: $allrowidens
-              query: |
-                $allpkgidens = ([])
-                for $pkg in $lib.pkg.list() {
-                  $allpkgidens.append($pkg.name)
-                }
 
-                return($allpkgidens)
+              $allpkgidens.append($pkg.name)
+            }
+
+            // set the list of all idens as the $allpkgidens var on the element
+            $lib.import(optic.workflows).vars.set(allpkgidens, $allpkgidens)
 
     opts:
-      selectionstyle: bg
-      emptymesg: No matching packages found
-
       multiselect: true
+      selectionstyle: bg
+
+      emptymesg: No matching packages found
 
       onselect:
         - type: eventfire
@@ -54,6 +52,7 @@ elements:
 
       menu:
         items:
+          # a toast using `mesgvar`
           - text: Toast Name
             only:
               singleselect: true
@@ -63,15 +62,15 @@ elements:
                   title: success
                   mesgvar: $rows.0.name
 
+          # use a fmtstr operation to make a message and toast it using `mesgvar`
           - text: Toast Row Count
             onclick:
               - type: updatevars
                 opts:
                   operations:
-                    - type: callstorm
+                    - type: fmtstr
                       name: rowcountmesg
-                      query: |
-                        return($lib.str.format('{count} packages are selected', count=$rows.size()))
+                      fmtstr: '{$rows.length} packages are selected'
               - type: toast
                 opts:
                   title: success
@@ -91,16 +90,19 @@ elements:
           key: optic
           label: Optic
 
+  # A textarea element that displays a JSON object containing each selected package name and the package's size (as JSON)
   datatable-multiselect--output:
     title: pkg sizes
 
     type: textarea
 
+    # subscribe to `onvars` Events from the table
     subs:
       - src: datatable-multi--tbl
         events: [ onvars ]
 
     events:
+      # when receiving an `onvars` Event from the table, use a storm query to retrieve the JSON object of package -> size.
       onvars:
         - type: updatevars
           opts:
@@ -117,15 +119,18 @@ elements:
                   }
 
                   return($retn)
+
+        # refresh to render the new $pkgsizes object
         - type: refresh
 
     opts:
-      invar: $pkgsizes
-
-      # disallow editing
-      readonly: true
+      placeholder: Select package(s) to see their size
 
       # displaying JSON
       type: json
 
-      placeholder: Select package(s) to see their size
+      # the var containing the json object we want to render
+      invar: $pkgsizes
+
+      # disallow editing
+      readonly: true

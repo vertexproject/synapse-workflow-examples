@@ -5,15 +5,23 @@ optic_minversion: [2, 83, 0]
 debug: true
 
 layout:
+  type: cssgrid
+
+  rows: 256px min-content
+
   elements:
-    modalflow2-textarea: { w: 12, h: 6, x: 0, y: 0 }
-    modalflow2-buttons: { w: 4, h: 3, x: 0, y: 7 }
+    modalflow2-textarea: text
+    modalflow2-buttons: btns
+
+  areas: |
+    text
+    btns
 
 elements:
   modalflow2-textarea:
-    title: Hello
     type: textarea
 
+    # subscribe to the initial inbound onvars Event
     subs:
       - src: $workflow
         events: [ onvars ]
@@ -32,17 +40,21 @@ elements:
       placeholder: "type 'closeit' to cause the calling Workflow to close us"
 
       onchange:
-        # fire an `onvars` Event when the textarea value is changed.
+        # fire an `onvars` Event when the textarea value is changed. The calling Workflow can subscribe to these events and react to them.
+        # in this example, if the calling workflow receives 'closeit', it will close this modal.
         - type: eventfire
           opts:
             event: onvars
 
   modalflow2-buttons:
-    title: Eject
     type: buttons
+
+    style:
+      border: false
 
     opts:
       buttons:
-        - text: 'Close'
+        - text: Close
           onclick:
+            # without any opts will close the modal executing the action
             - type: closemodal

@@ -17,11 +17,10 @@ elements:
       # a static value
       value: |
         <html>
-          <head></head>
-          <body>
-            <h1>Hello World<h1>
-          </body>
+            <head></head>
+            <body>
+                <h1 class="foo-title">Hello World</h1>
+            </body>
         </html>
 
-      # invar: $foo
-      # outvar: bar
+      outvar: $newhtml

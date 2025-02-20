@@ -31,6 +31,7 @@ elements:
             opts:
               title: success
               mesg: yep foo
+
       - text: Toggle Do Foo button
         tooltip: toggle if the Do Foo button is disabled or not.
         onclick:

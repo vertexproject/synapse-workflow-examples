@@ -1,17 +1,25 @@
-desc: A stormform element with buttons to submit / rollback
+desc: Example of a stormform element with buttons to submit / reset
 
 optic_minversion: [2, 83, 0]
 
 debug: true
 
 layout:
-  type: default
+  type: cssgrid
+
+  cols: repeat(2, 1fr)
+
+  rows: max-content
 
   elements:
-    form-btns-form: {w: 6, h: 9, x: 0, y: 0}
-    form-btns-fields-textarea: {w: 6, h: 12, x: 6, y: 0}
+    form-btns-form: form
+    form-btns-fields-textarea: text
+
+  areas: |
+    form text
 
 defs:
+  # use a yaml anchor for the success toast action
   successtoast: &successtoast
     type: toast
 
@@ -24,16 +32,15 @@ defs:
       mesgvar: $mesg
 
 elements:
+  # A form with some input and dropdown fields and buttons to submit and reset the fields
   form-btns-form:
     type: stormform
 
+    # initialize $clean = true to disable the buttons when there are no changes
     oninit:
       - type: updatevars
         opts:
           operations:
-            - type: set
-              name: foo
-              value: ''
             - type: set
               name: clean
               value: true
@@ -42,6 +49,7 @@ elements:
       border: false
 
     defs:
+      # more yaml anchors for reusable blocks of actions
       updatefields: &updatefields
         - type: eventfire
           opts:
@@ -51,14 +59,17 @@ elements:
         - type: updatevars
           opts:
             operations:
+              # set $clean to false so the buttons will become enabled
               - type: set
                 name: clean
                 value: false
-              - type: set
+
+              # delete any previous value of $ok
+              - type: del
                 name: ok
-                value: false
 
       submitform: &submitform
+        # executes a callstorm action and returns some vars as long as $foo != error
         - type: callstorm
 
           filters:
@@ -80,14 +91,17 @@ elements:
                 })
               )
 
+        # toast with the message if $ok = true (see the successtoast yaml anchor)
         - *successtoast
 
+        # stop executing our action chain if $ok = true
         - type: stop
           filters:
             only:
               var: $ok
               eq: true
 
+        # use storm to return a $fielderrs var with an error message for the `foo` field
         - type: callstorm
           filters:
             only:
@@ -102,6 +116,7 @@ elements:
               // the return must be a dict with the `fielderrs` key
               return(({'ok': false, 'fielderrs': $fielderrs}))
 
+        # error toast after our query completes
         - type: toast
           filters:
             only:
@@ -112,23 +127,31 @@ elements:
             mesg: it didn't work...
 
     onload:
+      # focus the first input
       - type: sendfocus
         opts:
           field: foo-field
 
+      # fire our initialized $fields var to the subscribed textarea element
       - type: eventfire
         opts:
           event: onvars
           vars: [fields]
 
-
     opts:
       fields:
         - type: input
+
+          # so the sendfocus action can target this field
+          iden: foo-field
+
           name: foo
           label: Foo input
 
+          # submit on enter
           onenter: *submitform
+
+          # update when the user types
           onchange: *updatefields
 
           opts:
@@ -138,6 +161,7 @@ elements:
           name: bar
           label: Bar input
 
+          # update when the user types
           onchange: *updatefields
 
           opts:
@@ -147,6 +171,7 @@ elements:
           name: sel
           label: Choose one thing (dropdown)
 
+          # update when the user changes the value
           onchange: *updatefields
 
           opts:
@@ -166,6 +191,7 @@ elements:
           name: selections
           label: Choose multiple (multiselect)
 
+          # update when the user changes the value
           onchange: *updatefields
 
           opts:
@@ -183,12 +209,18 @@ elements:
       buttons:
         - text: Submit
           tooltip: Do it
+
+          # disable the button when $clean = true
           disabled: $clean
+
           onclick: *submitform
 
         - text: Reset
           tooltip: Reset form values
+
+          # disable the button when $clean = true
           disabled: $clean
+
           onclick:
             - type: delvars
 
@@ -213,19 +245,27 @@ elements:
                     value: true
 
 
+  # a textarea to display the current contents of the stormform's $fields
   form-btns-fields-textarea:
     title: $fields var contents
     type: textarea
 
+    # subscribe to onvars events from the stormform
     subs:
       - src: form-btns-form
         events: [onvars]
 
     events:
+      # refresh to rerender the new value of $fields
       onvars:
         - type: refresh
 
     opts:
-      type: json
+      # the var to render in the textarea
       invar: $fields
+
+      # specify the invar is json so it can be rendered correctly
+      type: json
+
+      # don't allow editing
       readonly: true

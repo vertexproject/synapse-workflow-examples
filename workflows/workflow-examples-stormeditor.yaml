@@ -3,49 +3,73 @@ desc: Basic `stormeditor` + `stormconsole`
 optic_minversion: [2, 83, 0]
 
 layout:
-  type: default
+  type: cssgrid
+
+  rows: 1fr max-content 1fr
 
   elements:
-    stormeditor-input-editor: { w: 6, h: 12, x: 0, y: 0 }
-    stormeditor-run-btns: { w: 6, h: 2, x: 0, y: 12 }
-    stormeditor-output-console: { w: 6, h: 12, x: 0, y: 14 }
+    stormeditor-input-editor: edtr
+    stormeditor-run-btns: btns
+    stormeditor-output-console: cnsl
+
+  areas: |
+    edtr
+    btns
+    cnsl
+
+defs:
+  clear-and-run: &clear-and-run
+    # when a stormeditor executes a storm action it executes the query currently in the editor automatically
+    type: storm
+
+    opts:
+      # output to our stormconsole element
+      spinner:
+        element: stormeditor-input-editor
+
+      console:
+        iden: stormeditor-output-console
+
+        # clear any previous output in the console
+        clear: true
 
 elements:
   stormeditor-input-editor:
     title: storm query
     type: stormeditor
 
+    spinner: true
+
     opts:
+      # initial query to start with
       storm: $lib.print(hello)
 
+      # define the actions to execute when the user presses <Shift + Enter>
       onrun:
-        - type: storm
-          opts:
-            console:
-              iden: stormeditor-output-console
-              clear: true
+        - <<: *clear-and-run
 
   stormeditor-run-btns:
-    title: ''
     type: buttons
 
     opts:
       buttons:
         - text: Clear + Run <Shift+Enter>
+
           onclick:
-            - type: storm
+            - <<: *clear-and-run
+              # execute in the context of the stormeditor
               target: stormeditor-input-editor
-              opts:
-                console:
-                  iden: stormeditor-output-console
-                  clear: true
+
         - text: Append
           onclick:
             - type: storm
+
               target: stormeditor-input-editor
+
               opts:
                 console:
                   iden: stormeditor-output-console
 
+  # the console storm query output will be directed to
   stormeditor-output-console:
     type: stormconsole

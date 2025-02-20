@@ -6,15 +6,16 @@ optic_minversion: [2, 83, 0]
 
 layout:
   type: cssgrid
-  rows: 1fr 60px
 
-  areas: |
-    tabs
-    btns
+  rows: 1fr min-content
 
   elements:
     tabs-elmnt: tabs
     btns-elmnt: btns
+
+  areas: |
+    tabs
+    btns
 
 elements:
   tabs-elmnt:
@@ -26,6 +27,7 @@ elements:
           iden: foo-data
 
           layout:
+            # use the older default layout style
             elements:
               txtarea-foo-a: { x: 0, y: 0, w: 8, h: 6 }
               txtarea-foo-b: { x: 8, y: 0, w: 4, h: 6 }
@@ -83,10 +85,19 @@ elements:
           iden: bar-data
 
           layout:
+            type: cssgrid
+
+            rows: 3fr 2fr
+            cols: repeat(2, 1fr)
+
             elements:
-              txtarea-bar-a: { x: 0, y: 0, w: 6, h: 8 }
-              txtarea-bar-b: { x: 0, y: 8, w: 6, h: 6 }
-              txtarea-bar-c: { x: 6, y: 0, w: 6, h: 14 }
+              txtarea-bar-a: bara
+              txtarea-bar-b: barb
+              txtarea-bar-c: barc
+
+            areas: |
+              bara barc
+              barb barc
 
           buttons:
             - text: Add Bar
@@ -122,10 +133,11 @@ elements:
                 value: bar c
 
         - text: cssgrid layout
-          iden: cssgrid-layout
+          iden: baz-data
 
           layout:
             type: cssgrid
+
             rows: minmax(64px, 1fr) minmax(256px, 2fr) minmax(128px, 3fr)
             cols: minmax(512px, 2fr) minmax(256px, 512px)
 

@@ -2,10 +2,22 @@ desc: Example `stormform` and `nodeeditor` Elements, using `updateopts` Action t
 
 optic_minversion: [2, 83, 0]
 
+debug: true
+
 layout:
+  type: cssgrid
+
   elements:
-    nodecreator-nodeform-selector: { w: 4, h: 3, x: 0, y: 0 }
-    nodecreator-nodeeditor: { w: 8, h: 20, x: 0, y: 4 }
+    nodecreator-nodeform-selector: fsel
+    nodecreator-nodeeditor: edtr
+    nodecreator-console: cnsl
+
+  rows: min-content 1fr 
+  cols: repeat(2, 1fr)
+
+  areas: |
+    fsel ....
+    edtr cnsl
 
 elements:
   nodecreator-nodeform-selector:
@@ -53,10 +65,21 @@ elements:
       # display the primary prop since we plan to create a new node.
       displayprimary: true
 
-      submit:
-        # TODO: Add a better storm query
-        btntext: Add
+      buttons:
+        - text: Add
+          onclick:
+            - type: storm
+              opts:
+                render: false
 
-        query: |
-          // can create a node from the populated values in $fields
-          $lib.pprint($fields)
+                console:
+                  iden: nodecreator-console
+
+                query: |
+                  // can create a node from the populated values in $fields
+                  $lib.pprint($fields)
+
+  nodecreator-console:
+    title: Console Output
+
+    type: stormconsole

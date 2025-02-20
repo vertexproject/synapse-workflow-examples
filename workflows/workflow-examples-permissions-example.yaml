@@ -1,4 +1,4 @@
-desc: Demonstrate Workflow permissions configueration and display variations in a textarea.
+desc: Demonstrate Workflow permissions configuration and display variations in a textarea.
 
 optic_minversion: [2, 83, 0]
 
@@ -42,6 +42,7 @@ layout:
   type: cssgrid
 
 elements:
+  # a textarea element to display the example configurations
   perms-example-textarea:
     title: Permissions configuration examples
 

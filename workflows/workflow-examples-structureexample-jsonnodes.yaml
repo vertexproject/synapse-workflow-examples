@@ -1,0 +1,171 @@
+# A Workflow that is invoked by a workflow node action defined by the package.
+# This is the Workflow part of the example showcasing how to structure
+# a storm module, storm command, node action, and workflow node action in the most flexible way.
+#
+#
+# The Workflow has three elements with different responsibilities.
+#
+# * A `stormform` Element to provide toggles that control the options for outputting the nodes as JSON.
+# * A `buttons` Element to provide a button that will copy the JSON to the user's clipboard.
+# * A `textarea` Element that displays
+#
+desc: Structure Example JSON nodes
+
+optic_minversion: [2, 105, 0]
+
+debug: true
+
+layout:
+  type: cssgrid
+
+  rows: max-content 1fr
+
+  elements:
+    jsonnodes-options: opts
+    jsonnodes-buttons: btns
+    jsonnodes-output: cnsl
+
+  areas: |
+    opts btns
+    cnsl cnsl
+
+elements:
+  jsonnodes-options:
+    type: stormform
+
+    style:
+      border: false
+
+    # so our subscribers can get our $fields to use as the options
+    onload: &fire-vars
+      - type: eventfire
+        opts:
+          event: onvars
+
+    opts:
+      layout:
+        orientation: horizontal
+
+      fields:
+        - name: repr
+          label: repr
+          type: toggle
+          # subsequently fire our vars when the user changes this toggle
+          onchange: *fire-vars
+
+        - name: pretty
+          label: pretty
+          type: toggle
+          # subsequently fire our vars when the user changes this toggle
+          onchange: *fire-vars
+
+  # a buttons element that has a copy button to copy the json to the user's clipboard
+  jsonnodes-buttons:
+    type: buttons
+
+    style:
+      border: false
+
+    subs:
+      # subscribe to the inbound nodes onnodes event so we can stash them in a var
+      - src: $workflow
+        events: [onnodes]
+
+      # subscribe to the onvars event from the options element so we have the
+      # user's selected options in the $fields var for generating json to copy to their clipboard
+      - src: jsonnodes-options
+        events: [onvars]
+
+    events:
+      onnodes:
+        # stash the inbound nodes when receiving the initial onnodes event
+        - type: updatevars
+          src: $workflow
+          opts:
+            operations:
+              - type: nodes
+                name: $stashednodes
+                path: $nodes
+
+    opts:
+      buttons:
+        - text: Copy to clipboard
+          size: sm
+          onclick:
+            - type: updatevars
+              opts:
+                operations:
+                  - type: callstorm
+                    name: json
+                    query:
+                      init {
+                        $vs = ()
+                        $mod = $lib.import(workflowexamples.structureexample.workflows)
+                      }
+
+                      $vs.append($mod.getWorkflowNodeJson($node, $fields))
+
+                      fini {
+                        return($lib.str.join("\n", $vs))
+                      }
+                    inboundnodes: $stashednodes
+
+            - type: setclipboard
+              opts:
+                clipvar: $json
+
+            - type: toast
+              opts:
+                level: success
+                mesg: Copied nodes json to your clipboard!
+
+  jsonnodes-output:
+    type: textarea
+
+    style:
+      border: false
+
+    subs:
+      - src: $workflow
+        events: [onnodes]
+
+      - src: jsonnodes-options
+        events: [onvars]
+
+    events:
+      # when we receive an onnodes event, stash the nodes (for subsequent rerender)
+      onnodes:
+        - type: updatevars
+          opts:
+            operations:
+              - type: nodes
+                name: $stashednodes
+                path: $nodes
+
+        - type: callstorm
+          opts:
+            query: &packed-query |
+              init {
+                $vs = ()
+                $mod = $lib.import(workflowexamples.structureexample.workflows)
+              }
+
+              $vs.append($mod.getWorkflowNodeJson($node, $fields))
+
+              fini {
+                return($lib.str.join("\n", $vs))
+              }
+
+      onvars:
+        - type: callstorm
+
+          src: jsonnodes-options
+
+          filters:
+            only:
+              var: stashednodes
+              neq: null
+
+          opts:
+            inboundnodes: $stashednodes
+            query: *packed-query

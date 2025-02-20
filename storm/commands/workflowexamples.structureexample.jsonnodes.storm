@@ -1,0 +1,8 @@
+/**
+ * A command that calls the module function to get the JSON for the inbound given node and print it.
+ * Note the module function does *not* do any printing to make it reusable by other storm code.
+ */
+
+$json = $lib.import(workflowexamples.structureexample).getNodeJson($node, ({'repr': $cmdopts.repr, 'pretty': $cmdopts.pretty}))
+
+$lib.print($json)

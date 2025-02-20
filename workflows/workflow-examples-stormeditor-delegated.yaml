@@ -1,27 +1,43 @@
-desc: Example storm editor where the query is executed only via a targeted action on a `stormconsole` Element.
+desc: Example stormeditor where the query is executed via a targeted action on a `stormconsole` Element.
 
 debug: true
 
 optic_minversion: [2, 83, 0]
 
 layout:
+  type: cssgrid
+
+  rows: 1fr max-content 1fr
+
   elements:
-    stormeditor-delegated-editor: { w: 6, h: 12, x: 0, y: 0 }
-    stormeditor-delegated-run-btns: { w: 6, h: 2, x: 0, y: 12 }
-    stormeditor-delegated-output-console: { w: 6, h: 12, x: 0, y: 14 }
+    stormeditor-delegated-editor: edtr
+    stormeditor-delegated-run-btns: btns
+    stormeditor-delegated-output-console: cnsl
+
+  areas: |
+    edtr
+    btns
+    cnsl
 
 elements:
+  # a stormeditor to let the user edit a storm query
   stormeditor-delegated-editor:
     title: storm query
     type: stormeditor
 
+    # set an initial query
     onload:
       - type: updatevars
         opts:
           operations:
             - type: set
               name: query
-              value: $lib.print(hello)
+              value: |
+                $lib.print(hello)
+                $lib.time.sleep(2)
+                $lib.print(world)
+
+      # propagate the initial query to the stormconsole so it can immediately be executed there
       - type: eventfire
         opts:
           event: onvars
@@ -29,29 +45,54 @@ elements:
       - type: refresh
 
     opts:
+      # load from the $query var
       invar: $query
+      # save the edited query to $query as well
       outvar: $query
 
+      # when the query is changed propagate it to the stormconsole so it can be executed there
       onchange:
         - type: eventfire
           opts:
             event: onvars
 
+  # the buttons element with a button to execute a targeted action on the stormconsole
   stormeditor-delegated-run-btns:
-    title: ''
     type: buttons
 
+    style:
+      border: false
+
     opts:
+      justify: left
+
       buttons:
         - text: Delegate Run
+
+          # give the button a spinner
+          spinner: true
+
           onclick:
+            # execute a storm action to run the query in the context of the console
             - type: storm
+
               target: stormeditor-delegated-output-console
+
               opts:
+                # use $query as the storm query to run
                 queryvar: $query
 
+                # bind the query execution to the first button in the buttons element
+                spinner:
+                  element: stormeditor-delegated-run-btns
+                  button:
+                    idx: 0
+
+  # the console that will actually execute the query. It subscribes to the stormeditor to receive
+  # the $query var, and the buttons element executes a targetted action in this context.
   stormeditor-delegated-output-console:
-    title: output
+    title: storm output
+
     type: stormconsole
 
     subs:

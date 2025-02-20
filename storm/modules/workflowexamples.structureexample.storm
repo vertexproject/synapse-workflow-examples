@@ -1,0 +1,16 @@
+/**
+ * A function that takes a node and serializes it's packed representation to JSON.
+ */
+function getNodeJson(n, opts) {
+    if ($opts.pretty = true) {
+        $indent = (4)
+    } else {
+        $indent = (null)
+    }
+
+    return($lib.json.save($getNodePacked($n, ({'repr': $opts.repr})), indent=$indent))
+}
+
+function getNodePacked(n, opts) {
+    return($n.pack(dorepr=$opts.repr))
+}

@@ -3,13 +3,22 @@ desc: Example of `stormform`, `stormtable` and `nodeviewer` Elements working tog
 optic_minversion: [2, 83, 0]
 
 layout:
-  type: default
+  type: cssgrid
 
   elements:
-    form-table-viewer--searchbar: { w: 6, h: 3, x: 0, y: 0 }
-    form-table-viewer--org-table: { w: 4, h: 23, x: 0, y: 3 }
-    form-table-viewer--contact-table: { w: 8, h: 11, x: 4, y: 3 }
-    form-table-viewer--host-table: { w: 8, h: 12, x: 4, y: 14 }
+    form-table-viewer--searchbar: srch
+    form-table-viewer--org-table: otbl
+    form-table-viewer--contact-table: ctbl
+    form-table-viewer--host-table: htbl
+
+  rows: min-content repeat(2, 1fr)
+
+  cols: repeat(6, 1fr)
+
+  areas: |
+    srch srch srch .... .... ....
+    otbl otbl ctbl ctbl ctbl ctbl
+    otbl otbl htbl htbl htbl htbl
 
 elements:
   # A Form with a single text <input>. Any time the <input> changes this Element will
@@ -53,7 +62,7 @@ elements:
       - src: form-table-viewer--searchbar
         events: [ onvars ]
 
-    # `events` defines a list of Actions to take onreceiving a particular type of event.
+    # `events` defines a list of Actions to take on receiving a particular type of event.
     events:
       onvars:
         - type: storm

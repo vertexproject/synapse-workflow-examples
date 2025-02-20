@@ -1,5 +1,5 @@
 ---
-desc: Demonstrate the Workflow Element and `storm` and `callstorm` Actions `spinner` opt.
+desc: Demonstrate the Workflow Element and `storm` Action `spinner` opt.
 optic_minversion: [2, 83, 0]
 
 debug: true
@@ -20,14 +20,22 @@ layout:
     spinner--layers-tbl: layr
 
 elements:
+  # a buttons element with buttons demonstrating both approachs to loading rows into another datatable element.
   spinner--buttons:
     type: buttons
 
     opts:
+      justify: left
+
       buttons:
+        # use the feed approach to execute the storm action in our context and feed messages to the datatable
         - text: Execute storm action to feed views table
+
+          # disable the button when $running is set to true
           disabled: $running
+
           onclick:
+            # set $running to true to disable the buttons
             - type: updatevars
               opts:
                 operations:
@@ -35,20 +43,21 @@ elements:
                     name: running
                     value: true
 
+            # run a storm action and feed messages to the datatable and bind to its spinner
             - type: storm
-
               opts:
                 render: false
-
-                spinner:
-                  - spinner--views-tbl
 
                 feed:
                   spinner--views-tbl:
                     - storm:fire
 
+                spinner:
+                  - spinner--views-tbl
+
+                # use sleep to make the query run slower than it would.
                 query: |
-                  $lib.time.sleep(1)
+                  $lib.time.sleep(0.5)
 
                   for $view in $lib.view.list() {
                     $row = ({
@@ -65,9 +74,10 @@ elements:
 
                     $lib.fire('optic:datatable:row', row=$row)
 
-                    $lib.time.sleep(0.5)
+                    $lib.time.sleep(0.2)
                   }
 
+            # set $running to false to enable the buttons
             - type: updatevars
               opts:
                 operations:
@@ -75,8 +85,11 @@ elements:
                     name: running
                     value: false
 
+        # use the targetted action approach to execute the action entirely in the datatable element's context
         - text: Targeted storm action to load views table
+
           disabled: $running
+
           onclick:
             - type: updatevars
               opts:
@@ -87,9 +100,11 @@ elements:
 
             - type: storm
 
+              # this makes the action execute exactly like it would be if executed in the target element.
               target: spinner--views-tbl
 
               opts:
+                # bind to our own `spinner--views-tbl` spinner
                 spinner: true
 
                 query: |
@@ -123,7 +138,7 @@ elements:
   spinner--views-tbl:
     type: datatable
 
-    title: <a title>
+    title: Views
 
     spinner: true
 
@@ -197,27 +212,20 @@ elements:
 
     spinner: true
 
-    title: View layers
+    title: Selected View Layers
 
     doc:
       tooltip: |
-        This table will take a while to load, you can cancel a running query with the spinner in the titlebar.
+        This table should load quickly when a View is selected it will display its Layers.
 
-    menu:
-      items:
-        - text: Foo
-          onclick:
-            - type: toast
-              opts:
-                title: success
-                mesg: Foo
-
+    # subscribe to `onvars` Events from the views datatable Element
     subs:
       - src: spinner--views-tbl
         events:
           - onvars
 
     events:
+      # When receiving vars from the views datatable, use $viewiden to get the layers and fire them as rows
       onvars:
         - type: storm
           opts:

@@ -1,0 +1,13 @@
+$__mod = $lib.import(workflowexamples.structureexample)
+
+function getWorkflowNodePacked(n, fields) {
+    $json = $__mod.getNodePacked($n, $fields)
+
+    return($json)
+}
+
+function getWorkflowNodeJson(n, fields) {
+    $json = $__mod.getNodeJson($n, $fields)
+
+    return($json)
+}
